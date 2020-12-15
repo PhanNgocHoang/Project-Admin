@@ -1,15 +1,44 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-
-export const TypeBookComponent = () => {
+import { NavLink } from 'react-router-dom'
+import queryString from 'query-string'
+import { Table, Button, Pagination } from 'react-bootstrap'
+import {connect} from 'react-redux'
+function TypeBookComponent(props){
     const [typeBook, setTypeBook] = useState([])
+    const [pagination, setPagination] = useState({
+        page: 1,
+        totalPages: 1,
+        perPage: 5,
+    })
     useEffect(() => {
-        axios.get('http://localhost:4000/typebook').then((response) => {
-            if (response.status === 200) {
+        const paramsString = queryString.stringify(pagination)
+        axios.get(`https://e-libraryapi.herokuapp.com/typebook?${paramsString}`).then((response) => {
+            if (response.status = 200) {
                 setTypeBook(response.data.data.data)
+                setPagination({
+                    page: response.data.data.currentPage,
+                    totalPages: response.data.data.totalPages,
+                    perPage: response.data.data.perPage,
+                })
+                return false
             }
+        }).catch((err) => {
+            console.log(err)
         })
     }, [])
+    const getDetails = (id) => {
+    }
+    const deletetTypeBook = (id) => {
+        console.log(id)
+    }
+    const editTypeBook = (id) => {
+        console.log(id)
+    }
+    const getMore = (number) => {
+        setPagination({ ...pagination, perPage: number })
+
+    }
     return (
         <div className="content">
             <div className="animated fadeIn">
@@ -18,29 +47,71 @@ export const TypeBookComponent = () => {
                         <div className="card">
                             <div className="card-header">
                                 <strong className="card-title">Type Book</strong>
-                                <button className="btn btn-success" style={{ float: 'right' }}><i className="fa fa-plus-circle" aria-hidden="true"></i>Create</button>
+                                <NavLink to="/typeBook/create"><button className="btn btn-success" style={{ float: 'right' }}><i className="fa fa-plus-circle" aria-hidden="true"></i>Create</button></NavLink>
                             </div>
                             <div className="card-body">
-                                <table id="bootstrap-data-table" className="table table-striped table-bordered">
+                                <div className="input-group mb-3">
+                                        <div className="input-group-prepend">
+                                            <span className="input-group-text"><i className="fa fa-search" aria-hidden="true"></i></span>
+                                        </div>
+                                        <input type="text" className="form-control" placeholder="Search" aria-label="Username" />
+                                    </div>
+                                <div className="d-flex justify-content-end">
+                                        <label htmlFor="numberItem" className="mr-2">Number item </label>
+                                        <input list="numberItems" name="numberItem" id="numberItem" value={pagination.limit} onChange={(e) => { getMore(e.target.value) }} />
+                                        <datalist id="numberItems">
+                                            <option value="5" />
+                                            <option value="10" />
+                                            <option value="15" />
+                                            <option value="20" />
+                                            <option value="25" />
+                                        </datalist>
+                                </div>
+                                <Table hover className="mt-3">
                                     <thead>
                                         <tr>
+                                            <th>ID</th>
                                             <th>Type Name</th>
-                                            <td></td>
+                                            <th></th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {typeBook.map(type => (
-                                            <tr key={type._id}>
-                                                <td style={{ width: '70%' }}>{type.type_name}</td>
-                                                <td>
-                                                    <button className="btn btn-info m-1"><i className="fa fa-info" aria-hidden="true"></i> Detail</button>
-                                                    <button className="btn btn-primary m-1"><i className="fa fa-pencil-square" aria-hidden="true"></i> Edit</button>
-                                                    <button className="btn btn-danger m-1"><i className="fa fa-trash" aria-hidden="true"></i> Delete</button>
-                                                </td>
+                                            <tr key = {type._id}>
+                                                <td>{type._id}</td>
+                                                <td>{type.type_name}</td>
+                                                <td className="py-2">
+                                                        <Button  size="sm" variant="info" className="m-2" onClick={() => { getDetails(type._id) }}>
+                                                            <i className="fa fa-eye" aria-hidden="true">Details</i>
+                                                        </Button>
+                                                        <Button size="sm" variant="primary" className="m-2" onClick={() => { editTypeBook(type._id) }}>
+                                                            <i className="fa fa-pencil-square" aria-hidden="true">Edit</i>
+                                                        </Button>
+                                                        <Button size="sm" variant="danger" className="ml-2" onClick={() => { deletetTypeBook(type._id) }}>
+                                                            <i className="fa fa-trash" aria-hidden="true">Delete</i>
+                                                        </Button>
+                                                    </td>
                                             </tr>
                                         ))}
                                     </tbody>
-                                </table>
+                                </Table>
+                                <Pagination className="d-flex justify-content-end">
+                                    <Pagination.First />
+                                    <Pagination.Prev />
+                                    <Pagination.Item>{1}</Pagination.Item>
+                                    <Pagination.Ellipsis />
+
+                                    <Pagination.Item>{10}</Pagination.Item>
+                                    <Pagination.Item>{11}</Pagination.Item>
+                                    <Pagination.Item active>{12}</Pagination.Item>
+                                    <Pagination.Item>{13}</Pagination.Item>
+                                    <Pagination.Item disabled>{14}</Pagination.Item>
+
+                                    <Pagination.Ellipsis />
+                                    <Pagination.Item>{20}</Pagination.Item>
+                                    <Pagination.Next />
+                                    <Pagination.Last />
+                                </Pagination>
                             </div>
                         </div>
                     </div>
@@ -50,3 +121,9 @@ export const TypeBookComponent = () => {
 
     )
 }
+const mapStateToProps = (state) =>{
+    return {
+        typeBook: state.typesbook
+    }
+}
+export default connect(mapStateToProps, null)(TypeBookComponent)

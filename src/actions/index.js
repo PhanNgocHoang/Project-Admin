@@ -1,6 +1,6 @@
 import * as types from './../constants/actionTypes'
-export const listAll = () = {
+export const listAllTypeBook = ()=> {
     return {
-        type: types.LIST_ALL
+        type: types.LIST_ALL_TYPE_BOOK
     }
 }

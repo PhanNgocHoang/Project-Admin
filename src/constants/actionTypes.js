@@ -1,1 +1,1 @@
-export const LIST_ALL = 'LIST_ALL';
+export const LIST_ALL_TYPE_BOOK = 'LIST_ALL_TYPE_BOOK';
