@@ -1,6 +1,7 @@
 import React from 'react';
 import {NavLink} from 'react-router-dom'
 export const BooksComponent = () => {
+    
     const ArrayBook = [
         { id:1,title: "Northanger Abbey", author: "Austen, Jane", year_written: 1814, edition: "Penguin", price: 18.2 },
         { id:2,title: "War and Peace", author: "Tolstoy, Leo", year_written: 1865, edition: "Penguin", price: 12.7 },
