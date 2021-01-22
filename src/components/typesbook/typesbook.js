@@ -14,9 +14,7 @@ function TypeBookComponent(props) {
     })
     useEffect(() => {
         const paramsString = queryString.stringify(pagination)
-        console.log("🚀 ~ file: typesbook.js ~ line 17 ~ useEffect ~ paramsString", paramsString)
         axios.get(`https://e-libraryapi.herokuapp.com/typebook?${paramsString}`).then((response) => {
-            console.log("🚀 ~ file: typesbook.js ~ line 19 ~ axios.get ~ paramsString", paramsString)
             if (response.status = 200) {
                 setTypeBook(response.data.data.data)
                 setPagination({
