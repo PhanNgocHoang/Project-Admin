@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom'
+import { Link, Redirect } from 'react-router-dom'
 import { Form, Button } from 'react-bootstrap'
 import { useFormik } from 'formik'
 import * as yup from 'yup'
@@ -28,8 +28,10 @@ export const LoginComponent = () => {
         },
         validationSchema: validationSchema
     })
-    // const dataSelect2 = useSelector((state) => { return state.data })
-    // console.log("🚀 ~ file: login.js ~ line 25 ~ onSubmit: ~ dataSelect", dataSelect2)
+    const user = useSelector((state)=> {return state.login.data})
+    if(user.token) {
+       return <Redirect to="/" />
+    }
     const { handleSubmit, handleChange, handleBlur, touched, errors } = formik
     return (
         <div className="sufee-login d-flex align-content-center flex-wrap">
