@@ -36,7 +36,7 @@ export const LoginComponent = () => {
                         ))
                 }
             } catch (error) {
-                return Alert.success(
+                return Alert.error(
                     `<div role="alert">
                   ${error.response.data.message}
                   </div>`,
@@ -57,6 +57,7 @@ export const LoginComponent = () => {
     const { handleSubmit, handleChange, handleBlur, touched, errors } = formik
     return (
         <div className="sufee-login d-flex align-content-center flex-wrap">
+            <Alert stack={{ limit: 3 }} />
             <div className="container">
                 <div className="login-content">
                     <div className="login-logo">
