@@ -1,7 +1,9 @@
 import React from 'react';
 import { Link} from 'react-router-dom'
 import {AdminRouteComponent} from './router'
+import { useSelector } from 'react-redux';
 export const HeaderComponent = () => {
+  const user = useSelector((state)=> {return state.login.data})
     return (
       <div id="right-panel" className="right-panel">
         <header id="header" className="header">
@@ -87,7 +89,7 @@ export const HeaderComponent = () => {
       </div>
       <div className="user-area dropdown float-right">
         <Link  to="/index"className="dropdown-toggle active" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          <img className="user-avatar rounded-circle" src="images/admin.jpg" alt="User Avatar" />
+          <img className="user-avatar rounded-circle" src={user.user.photoUrl} alt="User Avatar" />
         </Link >
         <div className="user-menu dropdown-menu">
           <Link to="/index" className="nav-link" ><i className="fa fa- user" />My Profile</Link >
