@@ -3,7 +3,7 @@ import { Link, Redirect } from 'react-router-dom'
 import { Form, Button } from 'react-bootstrap'
 import { useFormik } from 'formik'
 import * as yup from 'yup'
-import { checkLogin } from './../api/index';
+import { checkLogin } from '../api/index';
 import Alert from "react-s-alert";
 import { useDispatch, useSelector } from 'react-redux';
 const validationSchema = yup.object().shape({
@@ -51,9 +51,9 @@ export const LoginComponent = () => {
         validationSchema: validationSchema
     })
     const user = useSelector((state) => { return state.login.data })
-    if (user.token) {
-        return <Redirect to="/" />
-    }
+    // if (user.token) {
+    //     return <Redirect to="/" />
+    // }
     const { handleSubmit, handleChange, handleBlur, touched, errors } = formik
     return (
         <div className="sufee-login d-flex align-content-center flex-wrap">

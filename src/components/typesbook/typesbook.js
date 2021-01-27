@@ -1,11 +1,11 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from 'react';
 import Alert from "react-s-alert";
-import axios from 'axios';
 import queryString from 'query-string'
 import { Table, Button, Modal, Form, Container, Row, Col } from 'react-bootstrap'
 import Paginations from 'react-js-pagination'
 import { Formik } from 'formik';
-import { createBookType, updateBookType } from '../../api/index'
+import { createBookType, updateBookType, getBookType, deletetBookTypeApi, getBookTypeDetails } from '../../api/index'
 import * as yup from 'yup'
 import "react-s-alert/dist/s-alert-default.css";
 import "react-s-alert/dist/s-alert-css-effects/slide.css";
@@ -33,27 +33,37 @@ export const TypeBookComponent = () => {
     const [showCreated, setShowCreated] = useState(false)
     const [showDetails, setShowDetails] = useState(false)
     const [showEdit, setShowEdit] = useState(false)
-    useEffect(() => {
-        const paramsString = queryString.stringify(pagination)
-        axios.get(`https://e-libraryapi.herokuapp.com/typebook?${paramsString}`).then((response) => {
-            // eslint-disable-next-line no-cond-assign
-            if (response.status = 200) {
-                setBookType(response.data.data.data)
-                setPaginationInfo({ ...paginationInfo, currentPage: response.data.data.currentPage, totalItems: response.data.data.totalItems, itemsCountPerPage: parseInt(pagination.limit) })
+    const getData = async () => {
+        try {
+            const paramsString = queryString.stringify(pagination)
+            const result = await getBookType(paramsString)
+            if (result.status === 200) {
+                setBookType(result.data.data.data)
+                setPaginationInfo({ ...paginationInfo, currentPage: result.data.data.currentPage, totalItems: result.data.data.totalItems, itemsCountPerPage: parseInt(pagination.limit) })
             }
-        }).catch((err) => {
-            console.log(err)
-        })
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        } catch (error) {
+            return Alert.error(
+                `<div role="alert">${error.response.data.message}</div>`,
+                {
+                    html: true,
+                    position: "top-right",
+                    effect: "slide"
+                }
+            )
+        }
+
+    }
+    useEffect(() => {
+        getData()
     }, [pagination, reload])
-    const deletetBookType = (id) => {
-        axios.delete(`https://e-libraryapi.herokuapp.com/typebook/${id}`, {
-        }).then((response) => {
-            if (response.status === 200) {
+    const deletetBookType = async (id) => {
+        try {
+            const result = await deletetBookTypeApi(id)
+            if (result.status === 200) {
                 setReload(!reload)
                 return Alert.success(
                     `<div role="alert">
-                   ${response.data.message}
+                   ${result.data.message}
                   </div>`,
                     {
                         html: true,
@@ -62,17 +72,47 @@ export const TypeBookComponent = () => {
                     }
                 )
             }
-        })
+        } catch (error) {
+            return Alert.error(
+                `<div role="alert">
+                ${error.response.data.message}</div>`,
+                {
+                    html: true,
+                    position: "top-right",
+                    effect: "slide"
+                }
+            )
+        }
     }
-    const editBookType = (id) => {
-        axios.get(`https://e-libraryapi.herokuapp.com/typebook/${id}`).then((response) => {
-            setTypeBookDetail({
-                _id: response.data.data._id,
-                type_name: response.data.data.type_name
-            })
-            handleShowEdit()
+    const confirmDelete = (id) => {
+        // eslint-disable-next-line no-restricted-globals
+        const result = confirm("Do you want to delete");
+        if (result == true) {
+            deletetBookType(id)
+        }
 
-        })
+    }
+    const editBookType = async (id) => {
+        try {
+            const result = await getBookTypeDetails(id)
+            if (result.status === 200) {
+                setTypeBookDetail({
+                    _id: result.data.data._id,
+                    type_name: result.data.data.type_name
+                })
+                handleShowEdit()
+            }
+        } catch (error) {
+            return Alert.error(
+                `<div role="alert">
+                ${error.response.data.message}</div>`,
+                {
+                    html: true,
+                    position: "top-right",
+                    effect: "slide"
+                }
+            )
+        }
     }
     const getMore = (number) => {
 
@@ -90,14 +130,27 @@ export const TypeBookComponent = () => {
     const handleCloseEdit = () => { setShowEdit(false) }
     const handleCloseCreate = () => { setShowCreated(false) }
     const handleShowCreate = () => { setShowCreated(true) }
-    const handleShowDetails = (id) => {
-        axios.get(`https://e-libraryapi.herokuapp.com/typebook/${id}`).then((response) => {
-            setTypeBookDetail({
-                _id: response.data.data._id,
-                type_name: response.data.data.type_name
-            })
-            setShowDetails(true)
-        })
+    const handleShowDetails = async (id) => {
+        try {
+            const result = await getBookTypeDetails(id)
+            if (result.status === 200) {
+                setTypeBookDetail({
+                    _id: result.data.data._id,
+                    type_name: result.data.data.type_name
+                })
+                setShowDetails(true)
+            }
+        } catch (error) {
+            return Alert.error(
+                `<div role="alert">
+                ${error.response.data.message}</div>`,
+                {
+                    html: true,
+                    position: "top-right",
+                    effect: "slide"
+                }
+            )
+        }
     }
     const handleCloseDetails = () => { setShowDetails(false) }
     const initialValues = {
@@ -125,12 +178,12 @@ export const TypeBookComponent = () => {
                                     <label htmlFor="numberItem" className="mr-2">Number item </label>
                                     <input name="numberItem" id="numberItem" value={pagination.limit} onChange={(e) => { getMore(e.target.value) }} />
                                 </div>
-                                <Table hover className="mt-3">
+                                <Table hover className="mt-3 table table-bordered">
                                     <thead>
                                         <tr>
-                                            <th>ID</th>
+                                            <th style={{ width: '20%' }}>ID</th>
                                             <th>Type Name</th>
-                                            <th></th>
+                                            <th style={{ width: '20%' }}></th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -146,7 +199,7 @@ export const TypeBookComponent = () => {
                                                         <i className="fa fa-pencil-square" aria-hidden="true">Edit</i>
                                                     </Button>
 
-                                                    <Button size="sm" variant="danger" className="ml-2" onClick={() => { deletetBookType(type._id) }}>
+                                                    <Button size="sm" variant="danger" className="ml-2" onClick={() => { confirmDelete(type._id) }}>
                                                         <i className="fa fa-trash" aria-hidden="true">Delete</i>
                                                     </Button>
                                                 </td>
