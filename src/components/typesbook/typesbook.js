@@ -5,7 +5,7 @@ import queryString from 'query-string'
 import { Table, Button, Modal, Form, Container, Row, Col } from 'react-bootstrap'
 import Paginations from 'react-js-pagination'
 import { Formik } from 'formik';
-import { createBookType, updateBookType, getBookType, deletetBookTypeApi, getBookTypeDetails } from '../../api/index'
+import { createBookType, updateBookType, getBookType, deletetBookTypeApi, getBookTypeDetails, getBookTypeDetailsApi } from '../../api/index'
 import * as yup from 'yup'
 import "react-s-alert/dist/s-alert-default.css";
 import "react-s-alert/dist/s-alert-css-effects/slide.css";
@@ -86,33 +86,11 @@ export const TypeBookComponent = () => {
     }
     const confirmDelete = (id) => {
         // eslint-disable-next-line no-restricted-globals
-        const result = confirm("Do you want to delete");
-        if (result == true) {
+        const result = confirm("Do you want to delete?");
+        if (result === true) {
             deletetBookType(id)
         }
 
-    }
-    const editBookType = async (id) => {
-        try {
-            const result = await getBookTypeDetails(id)
-            if (result.status === 200) {
-                setTypeBookDetail({
-                    _id: result.data.data._id,
-                    type_name: result.data.data.type_name
-                })
-                handleShowEdit()
-            }
-        } catch (error) {
-            return Alert.error(
-                `<div role="alert">
-                ${error.response.data.message}</div>`,
-                {
-                    html: true,
-                    position: "top-right",
-                    effect: "slide"
-                }
-            )
-        }
     }
     const getMore = (number) => {
 
@@ -126,7 +104,28 @@ export const TypeBookComponent = () => {
         setPagination({ ...pagination, searchKey: value })
 
     }
-    const handleShowEdit = () => { setShowEdit(true) }
+    const handleShowEdit = async (id) => {
+        try {
+            const result = await getBookTypeDetailsApi(id)
+            if (result.status === 200) {
+                setTypeBookDetail({
+                    _id: result.data.data._id,
+                    type_name: result.data.data.type_name
+                })
+                setShowEdit(true)
+            }
+        } catch (error) {
+            return Alert.error(
+                `<div role="alert">${error.response.data.message}
+                </div>`,
+                {
+                    html: true,
+                    position: "top-right",
+                    effect: "slide"
+                }
+            )
+        }
+    }
     const handleCloseEdit = () => { setShowEdit(false) }
     const handleCloseCreate = () => { setShowCreated(false) }
     const handleShowCreate = () => { setShowCreated(true) }
@@ -195,7 +194,7 @@ export const TypeBookComponent = () => {
                                                     <Button size="sm" variant="info" className="m-2" onClick={() => { handleShowDetails(type._id) }}>
                                                         <i className="fa fa-eye" aria-hidden="true">Details</i>
                                                     </Button>
-                                                    <Button size="sm" variant="primary" className="m-2" onClick={() => { editBookType(type._id) }}>
+                                                    <Button size="sm" variant="primary" className="m-2" onClick={() => { handleShowEdit(type._id) }}>
                                                         <i className="fa fa-pencil-square" aria-hidden="true">Edit</i>
                                                     </Button>
 

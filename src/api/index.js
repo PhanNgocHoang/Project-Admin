@@ -42,7 +42,7 @@ module.exports.deletetPublisher = async function (params) {
     return await instance.delete(`/publisher/${params}`)
 }
 module.exports.createAuthor = async function (params) {
-    return await instance.post("/author/createdAuthor", params)
+    return await instance.post("/author/createAuthor", params)
 }
 module.exports.getAuthor = async function (params) {
     return await instance.get(`/author?${params}`)
@@ -52,4 +52,7 @@ module.exports.updateAuthor = async function (params, values) {
 }
 module.exports.deletetAuthor = async function (params) {
     return await instance.delete(`/author/${params}`)
+}
+module.exports.getAuthorDetails = async function (params) {
+    return await instance.get(`/author/${params}`)
 }

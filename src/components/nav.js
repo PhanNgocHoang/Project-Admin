@@ -13,7 +13,7 @@ export const NavComponent = () => {
                         <li className="menu-item-has-children dropdown">
                             <NavLink to="#" className="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i className=" menu-icon fa fa-book" />Books</NavLink>
                             <ul className="sub-menu children dropdown-menu">
-                                <li><i className="fa fa-table" /><NavLink to="/typesbook" >Book Types</NavLink></li>
+                                <li><i className="fa fa-table" /><NavLink to="/booktypes" >Book Types</NavLink></li>
                                 <li><i className="fa fa-table" /><NavLink to="/books">Books</NavLink></li>
                             </ul>
                         </li>

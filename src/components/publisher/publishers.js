@@ -52,6 +52,7 @@ export const PublisherComponent = () => {
     }
     useEffect(() => {
         getData()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [pagination, reload])
     const [publisherDetail, setPublisherDetails] = useState({})
     const [showCreated, setShowCreated] = useState(false)
@@ -137,8 +138,8 @@ export const PublisherComponent = () => {
     }
     const confirmDelete = (id) => {
         // eslint-disable-next-line no-restricted-globals
-        const result = confirm("Do you want to delete");
-        if (result == true) {
+        const result = confirm("Do you want to delete?");
+        if (result === true) {
             handleDelete(id)
         }
     }
