@@ -1,66 +1,703 @@
-import React from 'react';
-import {NavLink} from 'react-router-dom'
+import React, { useEffect, useState } from "react";
+import Alert from "react-s-alert";
+import queryString from "query-string";
+import {
+  Table,
+  Button,
+  Modal,
+  Form,
+  Container,
+  Row,
+  Col,
+  Card,
+  CardGroup,
+} from "react-bootstrap";
+import Paginations from "react-js-pagination";
+import { Formik } from "formik";
+import * as yup from "yup";
+import "react-s-alert/dist/s-alert-default.css";
+import "react-s-alert/dist/s-alert-css-effects/slide.css";
+import {
+  getAllAuthor,
+  getAllBookTypes,
+  getAllPublisher,
+  getBooks,
+  createBook,
+  getBookDetail,
+  uploadImages,
+} from "../../api/index";
+const validationSchema = yup.object().shape({
+  book_name: yup
+    .string()
+    .required("Book name is required")
+    .matches("^[a-zA-Z0-9 ]*$", "Publisher name not valid"),
+  author: yup.string().required("Author is required"),
+  book_type: yup.string().required("Book type is required"),
+  publisher: yup.string().required("Book publisher is required"),
+  description: yup.string().required("Book description is required"),
+  image: yup.array().required("Book image is required"),
+  file: yup.string().required("Book file is required"),
+});
 export const BooksComponent = () => {
-    
-    const ArrayBook = [
-        { id:1,title: "Northanger Abbey", author: "Austen, Jane", year_written: 1814, edition: "Penguin", price: 18.2 },
-        { id:2,title: "War and Peace", author: "Tolstoy, Leo", year_written: 1865, edition: "Penguin", price: 12.7 },
-        { id:3,title: "Anna Karenina", author: "Tolstoy, Leo", year_written: 1875, edition: "Penguin", price: 13.5 },
-        { id:4,title: "Mrs. Dalloway", author: "Woolf, Virginia", year_written: 1925, edition: "Harcourt Brace", price: 25 },
-        { id:5,title: "The Hours", author: "Cunnningham, Michael", year_written: 1999, edition: "Harcourt Brace", price: 12.35 },
-        { id:6,title: "Huckleberry Finn", author: "Twain, Mark", year_written: 1865, edition: "Penguin", price: 5.76 },
-        { id:7,title: "Bleak House", author: "Dickens, Charles", year_written: 1870, edition: "Random House", price: 5.75 },
-        { id:8,title: "Tom Sawyer", author: "Twain, Mark", year_written: 1862, edition: "Random House", price: 7.75 },
-        { id:9,title: "A Room of One's Own", author: "Woolf, Virginia", year_written: 1922, edition: "Penguin", price: 29 },
-        { id:10,title: "Harry Potter", author: "Rowling, J.K.", year_written: 2000, edition: "Harcourt Brace", price: 19.95 },
-        { id:11,title: "One Hundred Years of Solitude", author: "Marquez", year_written: 1967, edition: "Harper  Perennial", price: 14.00 },
-        { id:12,title: "Hamlet, Prince of Denmark", author: "Shakespeare", year_written: 1603, edition: "Signet  Classics", price: 7.95 },
-        { id:13,title: "Lord of the Rings", author: "Tolkien, J.R.", year_written: 1937, edition: "Penguin", price: 27.45 },
-    ]
-    return (
-        <div className="content">
-            <div className="animated fadeIn">
-                <div className="row">
-                    <div className="col-md-12">
-                        <div className="card">
-                            <div className="card-header">
-                                <strong className="card-title">Books</strong>
-                               <NavLink to="/books/create"> <button className="btn btn-success" style={{float: 'right'}}><i className="fa fa-plus-circle" aria-hidden="true"></i>Create</button></NavLink>
-                            </div>
-                            <div className="card-body">
-                                <table id="bootstrap-data-table" className="table table-striped table-bordered">
-                                    <thead>
-                                        <tr>
-                                            <th>Title</th>
-                                            <th>Author</th>
-                                            <th>Year written</th>
-                                            <th>Edition</th>
-                                            <th>Price</th>
-                                            <td></td>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                    {ArrayBook.map(book => (
-                                         <tr key={book.id}>
-                                            <td>{book.title}</td>
-                                            <td>{book.author}</td>
-                                            <td>{book.year_written}</td>
-                                            <td>{book.edition}</td>
-                                            <td>{book.price}</td>
-                                            <td>
-                                                <button className="btn btn-info m-1"><i className="fa fa-info" aria-hidden="true"></i> Detail</button>
-                                                <button className="btn btn-primary m-1"><i className="fa fa-pencil-square" aria-hidden="true"></i> Edit</button>
-                                                <button className="btn btn-danger m-1"><i className="fa fa-trash" aria-hidden="true"></i> Delete</button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
+  const initialValues = {
+    book_name: "",
+    author: "",
+    book_type: "",
+    publisher: "",
+    description: "",
+    images: [],
+    file: "",
+  };
+  const [books, setBooks] = useState([]);
+  const images = [
+    "https://assets.entrepreneur.com/content/3x2/2000/20191219170611-GettyImages-1152794789.jpeg",
+    "https://images.theconversation.com/files/45159/original/rptgtpxd-1396254731.jpg?ixlib=rb-1.1.0&q=45&auto=format&w=754&fit=clip",
+    "https://i.guim.co.uk/img/media/bddbf0ae13e4b0e4dc91e4cf67224228fb06e7b5/0_38_4928_2957/master/4928.jpg?width=1200&height=1200&quality=85&auto=format&fit=crop&s=7e93597ec9e4483095bbbdcc202a2ef1",
+    "https://images.fineartamerica.com/images-medium-large-5/summer-book-christopher-elwell-and-amanda-haselock.jpg",
+    "https://miro.medium.com/max/10000/0*wZAcNrIWFFjuJA78",
+    "https://transitiontownguildford.files.wordpress.com/2015/06/wall-e.jpg",
+    "https://cdn.jpegmini.com/user/images/slider_puffin_before_mobile.jpg",
+    "https://joombig.com/demo-extensions1/images/gallery_slider/Swan_large.jpg",
+    "https://www.atlantaluxuryrentals.com/wp-content/uploads/2019/02/fall-in-atlanta.jpeg",
+    "https://images.ctfassets.net/9l3tjzgyn9gr/5xmJL24gWrVcq1FYLZkw37/1236150ed0e8c2563a0849d26f549923/autumn-leaves-road.jpg?fm=jpg&fl=progressive&q=50&w=1200",
+  ];
+  const [publishers, setPublisher] = useState([]);
+  const [bookTypes, setBookType] = useState([]);
+  const [authors, setAuthor] = useState([]);
+  const [reload, setReload] = useState(false);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 5,
+    searchKey: "",
+  });
+  const [paginationInfo, setPaginationInfo] = useState({
+    currentPage: 1,
+    totalItems: 0,
+    itemsCountPerPage: 5,
+  });
+  const getData = async () => {
+    try {
+      const paramsString = queryString.stringify(pagination);
+      const result = await getBooks(paramsString);
+      if (result.status === 200) {
+        setBooks(result.data.data.data);
+        setPaginationInfo({
+          ...paginationInfo,
+          currentPage: result.data.data.currentPage,
+          totalItems: result.data.data.totalItems,
+          itemsCountPerPage: parseInt(pagination.limit),
+        });
+      }
+    } catch (error) {
+      //   return Alert.error(
+      //     `<div role="alert">${error.response.data.message}</div>`,
+      //     {
+      //       html: true,
+      //       position: "top-right",
+      //       effect: "slide",
+      //     }
+      //   );
+    }
+  };
+  useEffect(() => {
+    getData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pagination, reload]);
+  const [publisherDetail, setPublisherDetails] = useState({});
+  const [showCreated, setShowCreated] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
+  const getMore = (number) => {
+    setPagination({ ...pagination, limit: number });
+  };
+  const handlePageChange = (pageNumber) => {
+    setPagination({ ...pagination, page: pageNumber });
+  };
+  const handleSearch = (value) => {
+    setPagination({ ...pagination, searchKey: value });
+  };
+  const handleShowEdit = async (id) => {
+    try {
+      const result = await getBookDetail(id);
+      if (result.status === 200) {
+        setPublisherDetails(result.data.data);
+        setShowEdit(true);
+      }
+    } catch (error) {
+      return Alert.error(
+        `<div role="alert">${error.response.data.message}</div>`,
+        {
+          html: true,
+          position: "top-right",
+          effect: "slide",
+        }
+      );
+    }
+  };
+  const handleCloseEdit = () => {
+    setShowEdit(false);
+  };
+  const handleCloseCreate = () => {
+    setShowCreated(false);
+  };
+  const handleShowCreate = async () => {
+    try {
+      // if (
+      //   bookTypes.length === 0 ||
+      //   authors.length === 0 ||
+      //   publishers.length === 0
+      // ) {
+      //   const author = await getAllAuthor();
+      //   const publisher = await getAllPublisher();
+      //   const bookType = await getAllBookTypes();
+      //   setAuthor(author.data.data);
+      //   setPublisher(publisher.data.data);
+      //   setBookType(bookType.data.data);
+      // }
+      setShowCreated(true);
+    } catch (error) {
+      return Alert.error(
+        `<div role="alert">${error.response.data.message}</div>`,
+        {
+          html: true,
+          position: "top-right",
+          effect: "slide",
+        }
+      );
+    }
+  };
+  const handleCloseDetails = () => {
+    setShowDetails(false);
+  };
+  const handleShowDetails = async (id) => {
+    try {
+      const result = await getBookDetail(id);
+      if (result.status === 200) {
+        setPublisherDetails(result.data.data);
+        setShowDetails(true);
+      }
+    } catch (error) {
+      return Alert.error(
+        `<div role="alert">${error.response.data.message}</div>`,
+        {
+          html: true,
+          position: "top-right",
+          effect: "slide",
+        }
+      );
+    }
+  };
+  const handleDelete = async (id) => {
+    // try {
+    //   const result = await deletetPublisher(id);
+    //   if (result.status === 200) {
+    //     setReload(!reload);
+    //     return Alert.success(
+    //       `<div role="alert">
+    //                ${result.data.message}
+    //               </div>`,
+    //       {
+    //         html: true,
+    //         position: "top-right",
+    //         effect: "slide",
+    //       }
+    //     );
+    //   }
+    // } catch (error) {
+    //   return Alert.error(
+    //     `<div role="alert">
+    //             ${error.response.data.message}</div>`,
+    //     {
+    //       html: true,
+    //       position: "top-right",
+    //       effect: "slide",
+    //     }
+    //   );
+    // }
+  };
+  const confirmDelete = (id) => {
+    // eslint-disable-next-line no-restricted-globals
+    const result = confirm("Do you want to delete?");
+    if (result === true) {
+      handleDelete(id);
+    }
+  };
+  const uploadImages = async (files) => {
+    const formData = new FormData();
+    for (const file of files) {
+      formData.append("images", file);
+    }
+    const result = await uploadImages(formData);
+    console.log(result);
+  };
+  return (
+    <div className="content">
+      <Alert stack={{ limit: 3 }} />
+      <div className="animated fadeIn">
+        <div className="row">
+          <div className="col-md-12">
+            <div className="card">
+              <div className="card-header">
+                <strong className="card-title">Books</strong>
+                <button
+                  className="btn btn-success"
+                  style={{ float: "right" }}
+                  onClick={handleShowCreate}
+                >
+                  <i className="fa fa-plus-circle" aria-hidden="true"></i>Create
+                </button>
+              </div>
+              <div className="card-body">
+                <div className="input-group mb-3">
+                  <div className="input-group-prepend">
+                    <span className="input-group-text">
+                      <i className="fa fa-search" aria-hidden="true"></i>
+                    </span>
+                  </div>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Search by publisher name"
+                    onChange={(e) => {
+                      handleSearch(e.target.value);
+                    }}
+                  />
                 </div>
+                <div className="d-flex justify-content-end">
+                  <label htmlFor="numberItem" className="mr-2">
+                    Number item{" "}
+                  </label>
+                  <input
+                    name="numberItem"
+                    id="numberItem"
+                    value={pagination.limit}
+                    onChange={(e) => {
+                      getMore(e.target.value);
+                    }}
+                  />
+                </div>
+                <Table hover className="mt-3 table table-bordered">
+                  <thead>
+                    <tr>
+                      <th style={{ width: "20%" }}>ID</th>
+                      <th>Book name</th>
+                      <th>Book Type</th>
+                      <th>Author</th>
+                      <th>Publisher</th>
+                      <th>Description</th>
+                      <th>status</th>
+                      <th style={{ width: "20%" }}></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {/* {publisher.map((publisher) => (
+                      <tr key={publisher._id}>
+                        <td>{publisher._id}</td>
+                        <td>{publisher.publisherName}</td>
+                        <td>{publisher.address}</td>
+                        <td className="py-2">
+                          <Button size="sm" variant="info" className="m-2">
+                            <i
+                              className="fa fa-eye"
+                              aria-hidden="true"
+                              onClick={() => {
+                                handleShowDetails(publisher._id);
+                              }}
+                            >
+                              Details
+                            </i>
+                          </Button>
+                          <Button size="sm" variant="primary" className="m-2">
+                            <i
+                              className="fa fa-pencil-square"
+                              aria-hidden="true"
+                              onClick={() => {
+                                handleShowEdit(publisher._id);
+                              }}
+                            >
+                              Edit
+                            </i>
+                          </Button>
+
+                          <Button size="sm" variant="danger" className="ml-2">
+                            <i
+                              className="fa fa-trash"
+                              aria-hidden="true"
+                              onClick={() => {
+                                confirmDelete(publisher._id);
+                              }}
+                            >
+                              Delete
+                            </i>
+                          </Button>
+                        </td>
+                      </tr>
+                    ))} */}
+                  </tbody>
+                </Table>
+                <Paginations
+                  activePage={paginationInfo.currentPage}
+                  itemsCountPerPage={paginationInfo.itemsCountPerPage}
+                  totalItemsCount={paginationInfo.totalItems}
+                  pageRangeDisplayed={5}
+                  onChange={handlePageChange}
+                  itemClass="page-item"
+                  linkClass="page-link"
+                />
+              </div>
             </div>
+          </div>
         </div>
-    )
-}
+      </div>
+      <Modal show={showCreated} onHide={handleCloseCreate} size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title>Create Book</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div className="card-body card-block">
+            <Formik
+              initialValues={initialValues}
+              onSubmit={async (values) => {
+                //     try {
+                //       const result = await createPublisher(values);
+                //       if (result.status === 200) {
+                //         handleCloseCreate();
+                //         setReload(!reload);
+                //         return Alert.success(
+                //           `<div role="alert">
+                //                                  ${result.data.message}
+                //                                 </div>`,
+                //           {
+                //             html: true,
+                //             position: "top-right",
+                //             effect: "slide",
+                //           }
+                //         );
+                //       }
+                //     } catch (error) {
+                //       handleCloseCreate();
+                //       return Alert.error(
+                //         `<div role="alert">
+                //                                 ${error.response.data.message}
+                //                                 </div>`,
+                //         {
+                //           html: true,
+                //           position: "top-right",
+                //           effect: "slide",
+                //         }
+                //       );
+                //     }
+              }}
+              validationSchema={validationSchema}
+            >
+              {(props) => (
+                <Form className="form-horizontal" onSubmit={props.handleSubmit}>
+                  <Form.Group>
+                    <Form.Row>
+                      <Form.Label column lg={3.5}>
+                        Book Name
+                      </Form.Label>
+                      <Col>
+                        <Form.Control
+                          lg={4}
+                          type="text"
+                          id="book_name"
+                          name="book_name"
+                          placeholder="Enter book name"
+                          onChange={props.handleChange}
+                          onBlur={props.handleBlur}
+                          isInvalid={
+                            props.touched.book_name && props.errors.book_name
+                          }
+                        />
+                        <Form.Control.Feedback type="invalid">
+                          {props.touched.book_name && props.errors.book_name}
+                        </Form.Control.Feedback>
+                      </Col>
+                    </Form.Row>
+                  </Form.Group>
+                  <Form.Group>
+                    <Form.Row>
+                      <Form.Label column lg={1.7}>
+                        Book Type
+                      </Form.Label>
+                      <Col>
+                        <Form.Control
+                          lg={4}
+                          type="text"
+                          id="book_type"
+                          name="book_type"
+                          placeholder="Enter book type"
+                          onChange={props.handleChange}
+                          onBlur={props.handleBlur}
+                          isInvalid={
+                            props.touched.book_type && props.errors.book_type
+                          }
+                        />
+                        <Form.Control.Feedback type="invalid">
+                          {props.touched.book_type && props.errors.book_type}
+                        </Form.Control.Feedback>
+                      </Col>
+                    </Form.Row>
+                  </Form.Group>
+                  <Form.Group>
+                    <Form.Row>
+                      <Form.Label column lg={3.5}>
+                        Author
+                      </Form.Label>
+                      <Col>
+                        <Form.Control
+                          lg={3}
+                          type="text"
+                          id="author"
+                          name="author"
+                          placeholder="Enter author name"
+                          onChange={props.handleChange}
+                          onBlur={props.handleBlur}
+                          isInvalid={
+                            props.touched.author && props.errors.author
+                          }
+                        />
+                        <Form.Control.Feedback type="invalid">
+                          {props.touched.author && props.errors.author}
+                        </Form.Control.Feedback>
+                      </Col>
+                    </Form.Row>
+                  </Form.Group>
+                  <Form.Group>
+                    <Form.Row>
+                      <Form.Label column lg={3.5}>
+                        Publisher
+                      </Form.Label>
+                      <Col>
+                        <Form.Control
+                          lg={3}
+                          type="text"
+                          id="publisher"
+                          name="publisher"
+                          placeholder="Enter publisher name"
+                          onChange={props.handleChange}
+                          onBlur={props.handleBlur}
+                          isInvalid={
+                            props.touched.publisher && props.errors.publisher
+                          }
+                        />
+                        <Form.Control.Feedback type="invalid">
+                          {props.touched.publisher && props.errors.publisher}
+                        </Form.Control.Feedback>
+                      </Col>
+                    </Form.Row>
+                  </Form.Group>
+                  <Form.Group>
+                    <Form.Label>Images</Form.Label>
+                    <Form.File
+                      id="images"
+                      name="images"
+                      multiple
+                      accept="image/png, image/jpeg"
+                      onChange={(e) => {
+                        uploadImages(e.target.files);
+                      }}
+                    />
+                    <CardGroup className="mt-3">
+                      {/* {images.map((item) => (
+                        <Card style={{ width: "18rem" }} className="mb-3 ml-3">
+                          <i
+                            className="fa fa-times-circle"
+                            aria-hidden="true"
+                            style={{ float: "right" }}
+                          ></i>
+                          <Card.Img
+                            variant="top"
+                            src={item}
+                            style={{ width: "100%", height: "100%" }}
+                          />
+                        </Card>
+                      ))} */}
+                    </CardGroup>
+                  </Form.Group>
+                  <Form.Group>
+                    <Form.Label>File</Form.Label>
+                    <Form.File
+                      id="file"
+                      label="Choose a PDF file"
+                      accept=".pdf"
+                    />
+                  </Form.Group>
+                  <Form.Group controlId="description">
+                    <Form.Label>Description</Form.Label>
+                    <Form.Control as="textarea" rows={3} />
+                  </Form.Group>
+                  <Modal.Footer>
+                    <Button variant="secondary" onClick={handleCloseCreate}>
+                      Close
+                    </Button>
+                    <Button variant="success" type="submit">
+                      Created
+                    </Button>
+                  </Modal.Footer>
+                </Form>
+              )}
+            </Formik>
+          </div>
+        </Modal.Body>
+      </Modal>
+
+      <Modal show={showEdit} onHide={handleCloseEdit}>
+        <Modal.Header closeButton>
+          <Modal.Title>Edit Book Type</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div className="card-body card-block">
+            <Formik
+              initialValues={publisherDetail}
+              onSubmit={async (values) => {
+                // try {
+                //   const result = await updatePublisher(values._id, values);
+                //   if (result.status === 200) {
+                //     handleCloseEdit();
+                //     setReload(!reload);
+                //     return Alert.success(
+                //       `<div role="alert">
+                //                             ${result.data.message}
+                //                             </div>`,
+                //       {
+                //         html: true,
+                //         position: "top-right",
+                //         effect: "slide",
+                //       }
+                //     );
+                //   }
+                // } catch (error) {
+                //   handleCloseEdit();
+                //   return Alert.error(
+                //     `<div role="alert">
+                //                             ${error.response.data.message}
+                //                             </div>`,
+                //     {
+                //       html: true,
+                //       position: "top-right",
+                //       effect: "slide",
+                //     }
+                //   );
+                // }
+              }}
+              validationSchema={validationSchema}
+            >
+              {(props) => (
+                <form className="form-horizontal" onSubmit={props.handleSubmit}>
+                  <div className="row form-group">
+                    <div className="col col-md-3">
+                      <label
+                        htmlFor="author-name-input"
+                        className=" form-control-label"
+                      >
+                        Publisher Name
+                      </label>
+                    </div>
+                    <div className="col-12 col-md-9">
+                      <Form.Control
+                        type="text"
+                        id="publisherName"
+                        name="publisherName"
+                        placeholder="Enter publisher name"
+                        onChange={props.handleChange}
+                        onBlur={props.handleBlur}
+                        value={props.values.publisherName}
+                        isInvalid={
+                          props.touched.publisherName &&
+                          props.errors.publisherName
+                        }
+                      />
+                      <Form.Control.Feedback type="invalid"></Form.Control.Feedback>
+                    </div>
+                    <small style={{ color: "#ff4d4d" }}>
+                      {props.touched.publisherName &&
+                        props.errors.publisherName}
+                    </small>
+                  </div>
+                  <div className="row form-group">
+                    <div className="col col-md-3">
+                      <label
+                        htmlFor="author-name-input"
+                        className=" form-control-label"
+                      >
+                        Address
+                      </label>
+                    </div>
+                    <div className="col-12 col-md-9">
+                      <Form.Control
+                        type="text"
+                        id="address"
+                        name="address"
+                        placeholder="Enter address"
+                        onChange={props.handleChange}
+                        onBlur={props.handleBlur}
+                        value={props.values.address}
+                        isInvalid={
+                          props.touched.address && props.errors.address
+                        }
+                      />
+                      <Form.Control.Feedback type="invalid"></Form.Control.Feedback>
+                    </div>
+                    <small style={{ color: "#ff4d4d" }}>
+                      {props.touched.address && props.errors.address}
+                    </small>
+                  </div>
+                  <Modal.Footer>
+                    <Button variant="secondary" onClick={handleCloseEdit}>
+                      Close
+                    </Button>
+                    <Button variant="success" type="submit">
+                      Save
+                    </Button>
+                  </Modal.Footer>
+                </form>
+              )}
+            </Formik>
+          </div>
+        </Modal.Body>
+      </Modal>
+
+      <Modal show={showDetails} onHide={handleCloseDetails}>
+        <Modal.Header closeButton>
+          <Modal.Title>Publisher Detail</Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="show-grid">
+          <Container>
+            <Row>
+              <Col xs={6} md={4}>
+                ID
+              </Col>
+              <Col xs={12} md={8}>
+                {publisherDetail._id}
+              </Col>
+            </Row>
+
+            <Row>
+              <Col xs={6} md={4}>
+                Publisher Name
+              </Col>
+              <Col xs={12} md={8}>
+                {publisherDetail.publisherName}
+              </Col>
+            </Row>
+            <Row>
+              <Col xs={6} md={4}>
+                Address
+              </Col>
+              <Col xs={12} md={8}>
+                {publisherDetail.address}
+              </Col>
+            </Row>
+          </Container>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleCloseDetails}>
+            Close
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    </div>
+  );
+};
