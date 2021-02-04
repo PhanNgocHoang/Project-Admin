@@ -1,12 +1,11 @@
-import React, { useContext, useState } from "react";
+import React, { useState } from "react";
 import { Link, Redirect } from "react-router-dom";
 import { Form, Button } from "react-bootstrap";
 import { useFormik } from "formik";
 import * as yup from "yup";
 import { checkLogin } from "../api/index";
 import Alert from "react-s-alert";
-import { useDispatch } from "react-redux";
-import { AuthUserCtx } from "../context/auth";
+import { useDispatch, useSelector } from "react-redux";
 const validationSchema = yup.object().shape({
   email: yup.string().email("Email invalid").required("Email is required"),
   password: yup
@@ -16,7 +15,6 @@ const validationSchema = yup.object().shape({
 });
 export const LoginComponent = () => {
   const [login, setLogin] = useState(false);
-  const authContext = useContext(AuthUserCtx);
   const dispatch = useDispatch();
   const formik = useFormik({
     initialValues: {
@@ -29,10 +27,9 @@ export const LoginComponent = () => {
         if (info.status === 200) {
           const data = info.data;
           localStorage.setItem("token", data.token);
-          authContext.setAuthUser(data.user);
+          dispatch({ type: "DATA_LOGIN", payload: data.user });
           return Alert.success(
-            `<div role="alert">
-                     Login Successfully
+            `<div role="alert">Login Successfully
                     </div>`,
             {
               html: true,
@@ -56,13 +53,16 @@ export const LoginComponent = () => {
     },
     validationSchema: validationSchema,
   });
-  const { handleSubmit, handleChange, handleBlur, touched, errors } = formik;
-  if (authContext.authUser) {
+  const user = useSelector((state) => {
+    return state.login.data;
+  });
+  if (user.email) {
     return <Redirect to="/" />;
   }
+  const { handleSubmit, handleChange, handleBlur, touched, errors } = formik;
   return (
     <div className="sufee-login d-flex align-content-center flex-wrap">
-      <Alert stack={{ limit: 3 }} />
+      <Alert stack={{ limit: 1 }} />
       <div className="container">
         <div className="login-content">
           <div className="login-logo">

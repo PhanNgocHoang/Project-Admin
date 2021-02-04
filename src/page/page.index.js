@@ -1,12 +1,14 @@
-import React, { useContext } from "react";
+import React from "react";
 import { NavComponent } from "../components/nav";
 import { HeaderComponent } from "../components/header";
 import { Redirect } from "react-router-dom";
 import Alert from "react-s-alert";
 import { useAuth } from "../hooks/useAuth";
-import { AuthUserCtx } from "../context/auth";
+import { useSelector } from "react-redux";
 export const PageIndex = () => {
-  const { authUser } = useContext(AuthUserCtx);
+  const user = useSelector((state) => {
+    return state.login.data;
+  });
   const fetchMeApiData = useAuth();
   if (fetchMeApiData.loading) {
     return <div>Authenticating...</div>;
@@ -14,14 +16,14 @@ export const PageIndex = () => {
   if (fetchMeApiData.error) {
     return <Redirect to="/login" />;
   }
-  if (!authUser) {
-    return null;
+  if (!user) {
+    return <Redirect to="/login" />;
   }
   return (
     <div>
       <Alert stack={{ limit: 3 }} />
       <NavComponent />
-      <HeaderComponent user={authUser}></HeaderComponent>
+      <HeaderComponent user={user}></HeaderComponent>
     </div>
   );
 };

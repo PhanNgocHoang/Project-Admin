@@ -1,15 +1,18 @@
-import React, { useContext } from "react";
+import React from "react";
 import { useAuth } from "../hooks/useAuth";
-import { AuthUserCtx } from "../context/auth";
 import { Redirect } from "react-router-dom";
+import { useSelector } from "react-redux";
 import { LoginComponent } from "../components/login";
+import Alert from "react-s-alert";
 export const LoginPage = () => {
   const fetchMeApiData = useAuth();
-  const { authUser } = useContext(AuthUserCtx);
+  const user = useSelector((state) => {
+    return state.login.data;
+  });
   if (fetchMeApiData.loading) {
     return <div>Authenticating...</div>;
   }
-  if (authUser) {
+  if (!user) {
     return <Redirect to="/" />;
   }
   return (

@@ -2,6 +2,10 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { AdminRouteComponent } from "./router";
 export const HeaderComponent = (props) => {
+  const logout = function () {
+    localStorage.removeItem("token");
+    return (window.location = "/login");
+  };
   return (
     <div id="right-panel" className="right-panel">
       <header id="header" className="header">
@@ -153,7 +157,7 @@ export const HeaderComponent = (props) => {
                   <i className="fa fa -cog" />
                   Settings
                 </Link>
-                <Link to="/index" className="nav-link">
+                <Link to="#" className="nav-link" onClick={logout}>
                   <i className="fa fa-power -off" />
                   Logout
                 </Link>
