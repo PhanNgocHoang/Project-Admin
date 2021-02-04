@@ -25,6 +25,7 @@ import {
   createBook,
   getBookDetail,
   uploadImages,
+  uploadFile,
 } from "../../api/index";
 const validationSchema = yup.object().shape({
   book_name: yup
@@ -49,18 +50,6 @@ export const BooksComponent = () => {
     file: "",
   };
   const [books, setBooks] = useState([]);
-  const images = [
-    "https://assets.entrepreneur.com/content/3x2/2000/20191219170611-GettyImages-1152794789.jpeg",
-    "https://images.theconversation.com/files/45159/original/rptgtpxd-1396254731.jpg?ixlib=rb-1.1.0&q=45&auto=format&w=754&fit=clip",
-    "https://i.guim.co.uk/img/media/bddbf0ae13e4b0e4dc91e4cf67224228fb06e7b5/0_38_4928_2957/master/4928.jpg?width=1200&height=1200&quality=85&auto=format&fit=crop&s=7e93597ec9e4483095bbbdcc202a2ef1",
-    "https://images.fineartamerica.com/images-medium-large-5/summer-book-christopher-elwell-and-amanda-haselock.jpg",
-    "https://miro.medium.com/max/10000/0*wZAcNrIWFFjuJA78",
-    "https://transitiontownguildford.files.wordpress.com/2015/06/wall-e.jpg",
-    "https://cdn.jpegmini.com/user/images/slider_puffin_before_mobile.jpg",
-    "https://joombig.com/demo-extensions1/images/gallery_slider/Swan_large.jpg",
-    "https://www.atlantaluxuryrentals.com/wp-content/uploads/2019/02/fall-in-atlanta.jpeg",
-    "https://images.ctfassets.net/9l3tjzgyn9gr/5xmJL24gWrVcq1FYLZkw37/1236150ed0e8c2563a0849d26f549923/autumn-leaves-road.jpg?fm=jpg&fl=progressive&q=50&w=1200",
-  ];
   const [publishers, setPublisher] = useState([]);
   const [bookTypes, setBookType] = useState([]);
   const [authors, setAuthor] = useState([]);
@@ -69,6 +58,9 @@ export const BooksComponent = () => {
     page: 1,
     limit: 5,
     searchKey: "",
+  });
+  const [images, setImages] = useState({
+    images: "",
   });
   const [paginationInfo, setPaginationInfo] = useState({
     currentPage: 1,
@@ -116,24 +108,24 @@ export const BooksComponent = () => {
   const handleSearch = (value) => {
     setPagination({ ...pagination, searchKey: value });
   };
-  const handleShowEdit = async (id) => {
-    try {
-      const result = await getBookDetail(id);
-      if (result.status === 200) {
-        setPublisherDetails(result.data.data);
-        setShowEdit(true);
-      }
-    } catch (error) {
-      return Alert.error(
-        `<div role="alert">${error.response.data.message}</div>`,
-        {
-          html: true,
-          position: "top-right",
-          effect: "slide",
-        }
-      );
-    }
-  };
+  // const handleShowEdit = async (id) => {
+  //   try {
+  //     const result = await getBookDetail(id);
+  //     if (result.status === 200) {
+  //       setPublisherDetails(result.data.data);
+  //       setShowEdit(true);
+  //     }
+  //   } catch (error) {
+  //     return Alert.error(
+  //       `<div role="alert">${error.response.data.message}</div>`,
+  //       {
+  //         html: true,
+  //         position: "top-right",
+  //         effect: "slide",
+  //       }
+  //     );
+  //   }
+  // };
   const handleCloseEdit = () => {
     setShowEdit(false);
   };
@@ -169,24 +161,24 @@ export const BooksComponent = () => {
   const handleCloseDetails = () => {
     setShowDetails(false);
   };
-  const handleShowDetails = async (id) => {
-    try {
-      const result = await getBookDetail(id);
-      if (result.status === 200) {
-        setPublisherDetails(result.data.data);
-        setShowDetails(true);
-      }
-    } catch (error) {
-      return Alert.error(
-        `<div role="alert">${error.response.data.message}</div>`,
-        {
-          html: true,
-          position: "top-right",
-          effect: "slide",
-        }
-      );
-    }
-  };
+  // const handleShowDetails = async (id) => {
+  //   try {
+  //     const result = await getBookDetail(id);
+  //     if (result.status === 200) {
+  //       setPublisherDetails(result.data.data);
+  //       setShowDetails(true);
+  //     }
+  //   } catch (error) {
+  //     return Alert.error(
+  //       `<div role="alert">${error.response.data.message}</div>`,
+  //       {
+  //         html: true,
+  //         position: "top-right",
+  //         effect: "slide",
+  //       }
+  //     );
+  //   }
+  // };
   const handleDelete = async (id) => {
     // try {
     //   const result = await deletetPublisher(id);
@@ -215,13 +207,13 @@ export const BooksComponent = () => {
     //   );
     // }
   };
-  const confirmDelete = (id) => {
-    // eslint-disable-next-line no-restricted-globals
-    const result = confirm("Do you want to delete?");
-    if (result === true) {
-      handleDelete(id);
-    }
-  };
+  // const confirmDelete = (id) => {
+  //   // eslint-disable-next-line no-restricted-globals
+  //   const result = confirm("Do you want to delete?");
+  //   if (result === true) {
+  //     handleDelete(id);
+  //   }
+  // };
   const uploadImages = async (files) => {
     const formData = new FormData();
     for (const file of files) {
@@ -229,6 +221,13 @@ export const BooksComponent = () => {
     }
     const result = await uploadImages(formData);
     console.log(result);
+  };
+  const uploadFile = async (file) => {
+    setImages({ images: file });
+    const formData = new FormData();
+    // formData.append("doc", file);
+    // const result = await uploadFile(formData);
+    // console.log(result);
   };
   return (
     <div className="content">
@@ -522,6 +521,9 @@ export const BooksComponent = () => {
                       id="file"
                       label="Choose a PDF file"
                       accept=".pdf"
+                      onChange={(e) => {
+                        uploadFile(e.target.files[0]);
+                      }}
                     />
                   </Form.Group>
                   <Form.Group controlId="description">

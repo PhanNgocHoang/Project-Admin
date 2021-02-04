@@ -1,9 +1,20 @@
-import React from 'react';
-import{LoginComponent} from '../components/login'
+import React, { useContext } from "react";
+import { useAuth } from "../hooks/useAuth";
+import { AuthUserCtx } from "../context/auth";
+import { Redirect } from "react-router-dom";
+import { LoginComponent } from "../components/login";
 export const LoginPage = () => {
-    return (
-        <div>
-            <LoginComponent/>
-        </div>
-    )
-}
+  const fetchMeApiData = useAuth();
+  const { authUser } = useContext(AuthUserCtx);
+  if (fetchMeApiData.loading) {
+    return <div>Authenticating...</div>;
+  }
+  if (authUser) {
+    return <Redirect to="/" />;
+  }
+  return (
+    <div>
+      <LoginComponent />
+    </div>
+  );
+};

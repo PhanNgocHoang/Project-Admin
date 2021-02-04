@@ -87,3 +87,6 @@ module.exports.getAllPublisher = async function () {
 module.exports.uploadImages = async function (params) {
   return await upload.post("/upload/images", params);
 };
+module.exports.uploadFile = async function (params) {
+  return await upload.post("/upload/pdf", params);
+};
