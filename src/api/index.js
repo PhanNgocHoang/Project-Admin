@@ -90,3 +90,6 @@ module.exports.uploadImages = async function (params) {
 module.exports.uploadFile = async function (params) {
   return await upload.post("/upload/pdf", params);
 };
+module.exports.deleteFile = async function (params) {
+  return await instance.delete("/upload/delete/file", params);
+};

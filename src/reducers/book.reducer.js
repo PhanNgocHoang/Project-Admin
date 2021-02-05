@@ -1,10 +1,10 @@
 import * as types from "./../constants/actionTypes";
-let initialState = {
-  data: {},
+const initialState = {
+  data: [],
 };
-const myReducers = (state = initialState, action) => {
+let myReducers = (state = initialState, action) => {
   switch (action.type) {
-    case types.DATA_LOGIN:
+    case types.BOOK_IMAGE:
       return { ...state, data: action.payload };
     default:
       return state;

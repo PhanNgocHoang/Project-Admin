@@ -10,9 +10,6 @@ export const PageIndex = () => {
     return state.login.data;
   });
   const fetchMeApiData = useAuth();
-  if (fetchMeApiData.loading) {
-    return <div>Authenticating...</div>;
-  }
   if (fetchMeApiData.error) {
     return <Redirect to="/login" />;
   }

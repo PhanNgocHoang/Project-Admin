@@ -9,9 +9,6 @@ export const LoginPage = () => {
   const user = useSelector((state) => {
     return state.login.data;
   });
-  if (fetchMeApiData.loading) {
-    return <div>Authenticating...</div>;
-  }
   if (!user) {
     return <Redirect to="/" />;
   }
