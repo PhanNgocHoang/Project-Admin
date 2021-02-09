@@ -14,82 +14,82 @@ const upload = axios.create({
     "Content-Type": "multipart/form-data",
   },
 });
-export const checkLogin = async function (params) {
+module.exports.checkLogin = async function (params) {
   return await instance.post("/auth/login", params);
 };
-export const createBookType = async function (params) {
+module.exports.createBookType = async function (params) {
   return await instance.post("/typebook/createtypebook", params);
 };
-export const updateBookType = async function (values, params) {
+module.exports.updateBookType = async function (values, params) {
   return await instance.put(`/typebook/${params}`, values);
 };
-export const getBookType = async function (params) {
+module.exports.getBookType = async function (params) {
   return await instance.get(`/typebook?${params}`);
 };
 
-export const deletetBookType = async function (params) {
+module.exports.deletetBookTypeApi = async function (params) {
   return await instance.delete(`/typebook/${params}`);
 };
-export const getBookTypeDetailsApi = async function (params) {
+module.exports.getBookTypeDetailsApi = async function (params) {
   return await instance.get(`/typebook/${params}`);
 };
-export const createPublisher = async function (params) {
+module.exports.createPublisher = async function (params) {
   return await instance.post("/publisher/createdPublisher", params);
 };
-export const getPublisher = async function (params) {
+module.exports.getPublisher = async function (params) {
   return await instance.get(`/publisher?${params}`);
 };
-export const getPublisherDetails = async function (params) {
+module.exports.getPublisherDetails = async function (params) {
   return await instance.get(`/publisher/${params}`);
 };
-export const updatePublisher = async function (params, values) {
+module.exports.updatePublisher = async function (params, values) {
   return await instance.put(`/publisher/${params}`, values);
 };
-export const deletetPublisher = async function (params) {
+module.exports.deletetPublisher = async function (params) {
   return await instance.delete(`/publisher/${params}`);
 };
-export const createAuthor = async function (params) {
+module.exports.createAuthor = async function (params) {
   return await instance.post("/author/createAuthor", params);
 };
-export const getAuthor = async function (params) {
+module.exports.getAuthor = async function (params) {
   return await instance.get(`/author?${params}`);
 };
-export const updateAuthor = async function (params, values) {
+module.exports.updateAuthor = async function (params, values) {
   return await instance.put(`/author/${params}`, values);
 };
-export const deletetAuthor = async function (params) {
+module.exports.deletetAuthor = async function (params) {
   return await instance.delete(`/author/${params}`);
 };
-export const getAuthorDetails = async function (params) {
+module.exports.getAuthorDetails = async function (params) {
   return await instance.get(`/author/${params}`);
 };
-export const getBooks = async function (params) {
+module.exports.getBooks = async function (params) {
   return await instance.get(`/books?${params}`);
 };
-export const getBookDetail = async function (params) {
+module.exports.getBookDetail = async function (params) {
   return await instance.get(`/books/${params}`);
 };
-export const createBook = async function (params) {
+module.exports.createBook = async function (params) {
   return await instance.post(`/books/${params}`);
 };
-export const updateBook = async function (params) {
+module.exports.updateBook = async function (params) {
   return await instance.put(`/books/${params}`);
 };
-export const getAllBookTypes = async function () {
+module.exports.getAllBookTypes = async function () {
   return await instance.get("/typebook/getAll");
 };
-export const getAllAuthor = async function () {
+module.exports.getAllAuthor = async function () {
   return await instance.get("/author/getAll");
 };
-export const getAllPublisher = async function () {
+module.exports.getAllPublisher = async function () {
   return await instance.get("/publisher/getAll");
 };
-export const uploadImages = async function (params) {
+module.exports.uploadImages = async function (params) {
   return await upload.post("/upload/images", params);
 };
-export const uploadFile = async function (params) {
+module.exports.uploadFile = async function (params) {
   return await upload.post("/upload/pdf", params);
 };
-export const deleteFile = async function (params) {
-  return await instance.delete("/upload/delete/file", params);
+module.exports.deleteFile = async function (params) {
+  return await instance.post("/upload/delete/file", params);
 };

@@ -14,7 +14,7 @@ import {
 } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import Paginations from "react-js-pagination";
-import { Formik } from "formik";
+import { Formik, Field } from "formik";
 import * as yup from "yup";
 import "react-s-alert/dist/s-alert-default.css";
 import "react-s-alert/dist/s-alert-css-effects/slide.css";
@@ -35,28 +35,29 @@ const validationSchema = yup.object().shape({
     .string()
     .required("Book name is required")
     .matches("^[a-zA-Z0-9 ]*$", "Publisher name not valid"),
-  author: yup.string().required("Author is required"),
+  author: yup.array().min(1, "Please choose a author"),
   book_type: yup.string().required("Book type is required"),
   publisher: yup.string().required("Book publisher is required"),
-  // description: yup.string().required("Book description is required"),
-  images: yup.array().required("Book image is required"),
-  file: yup.string().required("Book file is required"),
+  images: yup.array().min(1, "Book image is required"),
+  // file: yup.object(),
+  description: yup.string().required("Book description is required"),
 });
 export const BooksComponent = () => {
   const dispatch = useDispatch();
   const initialValues = {
     book_name: "",
-    author: "",
+    author: [],
     book_type: "",
     publisher: "",
-    // description: "",
     images: [],
-    file: "",
+    // file: {},
+    description: "",
   };
   const [books, setBooks] = useState([]);
   let bookImages = useSelector((state) => {
     return state.book.data;
   });
+  const [booksFile, setBooksFile] = useState({});
   const bookTypes = useSelector((state) => {
     return state.bookType.data;
   });
@@ -143,28 +144,19 @@ export const BooksComponent = () => {
   };
   const handleShowCreate = async () => {
     try {
-      if (
-        bookTypes.length === 0 ||
-        authors.length === 0 ||
-        publishers.length === 0
-      ) {
-        const author = await getAllAuthor();
-        const publisher = await getAllPublisher();
-        const bookType = await getAllBookTypes();
-        dispatch({ type: types.BOOK_TYPE, payload: bookType.data.data });
-        dispatch({ type: types.BOOK_AUTHOR, payload: author.data.data });
-        dispatch({ type: types.BOOK_PUBLISHER, payload: publisher.data.data });
-      }
+      const author = await getAllAuthor();
+      const publisher = await getAllPublisher();
+      const bookType = await getAllBookTypes();
+      dispatch({ type: types.BOOK_TYPE, payload: bookType.data.data });
+      dispatch({ type: types.BOOK_AUTHOR, payload: author.data.data });
+      dispatch({ type: types.BOOK_PUBLISHER, payload: publisher.data.data });
       setShowCreated(true);
     } catch (error) {
-      return Alert.error(
-        `<div role="alert">${error.response.data.message}</div>`,
-        {
-          html: true,
-          position: "top-right",
-          effect: "slide",
-        }
-      );
+      return Alert.error(`<div role="alert">${error}</div>`, {
+        html: true,
+        position: "top-right",
+        effect: "slide",
+      });
     }
   };
   const handleCloseDetails = () => {
@@ -224,25 +216,56 @@ export const BooksComponent = () => {
   //   }
   // };
   const uploadBookImages = async (files) => {
-    const formData = new FormData();
-    for (const file of files) {
-      formData.append("images", file);
+    if (files.length > 0) {
+      try {
+        if (bookImages.length === 0) {
+          const formData = new FormData();
+          for (const file of files) {
+            formData.append("images", file);
+          }
+          const result = await uploadImages(formData);
+          initialValues.images = result.data.images;
+          dispatch({ type: types.BOOK_IMAGE, payload: result.data.images });
+        } else {
+          const id = bookImages.map((image) => {
+            return image.cloudinary_id;
+          });
+          const result = await deleteFile({ files: id });
+          if (result.status === 200) {
+            const formData = new FormData();
+            for (const file of files) {
+              formData.append("images", file);
+            }
+            const result = await uploadImages(formData);
+            initialValues.images.concat(result.data.images);
+            dispatch({ type: types.BOOK_IMAGE, payload: result.data.images });
+          }
+        }
+      } catch (error) {
+        return Alert.error(
+          `<div role="alert"> <i class="fa fa-times-circle" aria-hidden="true"></i> ${error.response.data.message}</div>`,
+          {
+            html: true,
+            position: "top-right",
+            effect: "slide",
+          }
+        );
+      }
     }
-    const result = await uploadImages(formData);
-    initialValues.images = result.data.images;
-    dispatch({ type: types.BOOK_IMAGE, payload: result.data.images });
   };
   const uploadDoc = async (file) => {
     const formData = new FormData();
     formData.append("doc", file);
     const result = await uploadFile(formData);
-    initialValues.file = result.data.documentUrl;
+    initialValues.file = result.data;
+    setBooksFile(result.data);
   };
-  const deleteBookFile = async (url) => {
-    const result = await deleteFile({ file: url });
+  const deleteBookFile = async (cloudinary_id) => {
+    const file = bookImages.find((img) => img.cloudinary_id === cloudinary_id);
+    const result = await deleteFile({ files: [file.cloudinary_id] });
     if (result.status === 200) {
       bookImages = bookImages.filter((image) => {
-        return image !== url;
+        return image.cloudinary_id !== cloudinary_id;
       });
       dispatch({ type: types.BOOK_IMAGE, payload: bookImages });
       initialValues.file = bookImages;
@@ -275,7 +298,7 @@ export const BooksComponent = () => {
                   <input
                     type="text"
                     className="form-control"
-                    placeholder="Search by publisher name"
+                    placeholder="Search by book name"
                     onChange={(e) => {
                       handleSearch(e.target.value);
                     }}
@@ -441,26 +464,16 @@ export const BooksComponent = () => {
                         Book Type
                       </Form.Label>
                       <Col>
-                        <Form.Control
-                          lg={4}
-                          type="text"
-                          id="book_type"
-                          name="book_type"
-                          placeholder="Enter book type"
-                          onChange={props.handleChange}
-                          list="bookTypes"
-                          onBlur={props.handleBlur}
-                          isInvalid={
-                            props.touched.book_type && props.errors.book_type
-                          }
-                        />
-                        <datalist id="bookTypes">
-                          {bookTypes.map((type) => (
-                            <option value={type._id} key={type._id}>
-                              {type.type_name}
-                            </option>
-                          ))}
-                        </datalist>
+                        {bookTypes.map((type) => (
+                          <Form.Check
+                            type="radio"
+                            label={type.type_name}
+                            value={type._id}
+                            name="book_type"
+                            key={type._id}
+                            onChange={props.handleChange}
+                          />
+                        ))}
                         <Form.Control.Feedback type="invalid">
                           {props.touched.book_type && props.errors.book_type}
                         </Form.Control.Feedback>
@@ -473,28 +486,40 @@ export const BooksComponent = () => {
                         Author
                       </Form.Label>
                       <Col>
-                        <Form.Control
-                          lg={3}
-                          type="text"
-                          id="author"
-                          name="author"
-                          placeholder="Enter author name"
-                          list="authors"
-                          onChange={props.handleChange}
-                          onBlur={props.handleBlur}
-                          isInvalid={
-                            props.touched.author && props.errors.author
-                          }
-                        />
-                        <datalist id="authors">
-                          {authors.map((author) => (
-                            <option value={author._id} key={author._id}>
-                              {author.authorName}
-                            </option>
-                          ))}
-                        </datalist>
-                        <Form.Control.Feedback type="invalid">
-                          {props.touched.author && props.errors.author}
+                        {authors.map((author) => (
+                          <label key={author._id} className="mt-2 ml-2">
+                            {" "}
+                            {author.authorName}
+                            <input
+                              type="checkbox"
+                              name="author"
+                              className="ml-1"
+                              onChange={(e) => {
+                                const value = e.target.checked
+                                  ? author._id
+                                  : null;
+                                if (value === null) {
+                                  const authors = props.initialValues.author;
+                                  props.initialValues.author = authors.filter(
+                                    (item) => item !== author._id
+                                  );
+                                } else {
+                                  props.initialValues.author.push(author._id);
+                                }
+                              }}
+                              value={author._id}
+                            />
+                          </label>
+                        ))}
+                        <Form.Control.Feedback
+                          style={{
+                            width: "100%",
+                            marginTop: ".25rem",
+                            fontSize: "80%",
+                            color: "#dc3545",
+                          }}
+                        >
+                          {props.errors.author}
                         </Form.Control.Feedback>
                       </Col>
                     </Form.Row>
@@ -505,26 +530,16 @@ export const BooksComponent = () => {
                         Publisher
                       </Form.Label>
                       <Col>
-                        <Form.Control
-                          lg={3}
-                          type="text"
-                          id="publisher"
-                          name="publisher"
-                          placeholder="Enter publisher name"
-                          onChange={props.handleChange}
-                          onBlur={props.handleBlur}
-                          list="publishers"
-                          isInvalid={
-                            props.touched.publisher && props.errors.publisher
-                          }
-                        />
-                        <datalist id="publishers">
-                          {publishers.map((publisher) => (
-                            <option value={publisher._id} key={publisher._id}>
-                              {publisher.publisherName}
-                            </option>
-                          ))}
-                        </datalist>
+                        {publishers.map((publisher) => (
+                          <Form.Check
+                            type="radio"
+                            label={publisher.publisherName}
+                            value={publisher._id}
+                            name="publisher"
+                            key={publisher._id}
+                            onChange={props.handleChange}
+                          />
+                        ))}
                         <Form.Control.Feedback type="invalid">
                           {props.touched.publisher && props.errors.publisher}
                         </Form.Control.Feedback>
@@ -552,30 +567,31 @@ export const BooksComponent = () => {
                         <Card
                           style={{ width: "18rem" }}
                           className="mb-3 ml-3"
-                          key={item}
+                          key={item.cloudinary_id}
                         >
                           <i
                             className="fa fa-times-circle"
                             aria-hidden="true"
                             style={{ float: "right" }}
                             onClick={() => {
-                              deleteBookFile(item);
+                              deleteBookFile(item.cloudinary_id);
                             }}
                           ></i>
                           <Card.Img
                             variant="top"
-                            src={item}
+                            src={item.url}
                             style={{ width: "100%", height: "100%" }}
                           />
                         </Card>
                       ))}
                     </CardGroup>
                   </Form.Group>
-                  <Form.Group>
+                  {/* <Form.Group>
                     <Form.Label>File</Form.Label>
                     <Form.File
                       isInvalid={props.touched.file && props.errors.file}
                       id="file"
+                      name="file"
                       label="Choose a PDF file"
                       accept=".pdf"
                       onBlur={props.handleBlur}
@@ -586,16 +602,24 @@ export const BooksComponent = () => {
                     <Form.Control.Feedback type="invalid">
                       {props.touched.file && props.errors.file}
                     </Form.Control.Feedback>
-                  </Form.Group>
-                  {/* <Form.Group>
+                  </Form.Group> */}
+                  <Form.Group>
                     <Form.Label>Description</Form.Label>
                     <Form.Control
                       as="textarea"
                       rows={3}
                       name="description"
                       id="description"
-                    /> */}
-                  {/* </Form.Group> */}
+                      onChange={props.handleChange}
+                      onBlur={props.handleBlur}
+                      isInvalid={
+                        props.touched.description && props.errors.description
+                      }
+                    />
+                    <Form.Control.Feedback type="invalid">
+                      {props.touched.description && props.errors.description}
+                    </Form.Control.Feedback>
+                  </Form.Group>
                   <Modal.Footer>
                     <Button variant="secondary" onClick={handleCloseCreate}>
                       Close

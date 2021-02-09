@@ -29,7 +29,7 @@ export const LoginComponent = () => {
           localStorage.setItem("token", data.token);
           dispatch({ type: "DATA_LOGIN", payload: data.user });
           return Alert.success(
-            `<div role="alert">Login Successfully
+            `<div role="alert">  <i class="fa fa-check-circle" aria-hidden="true"> Login Successfully
                     </div>`,
             {
               html: true,
@@ -41,7 +41,7 @@ export const LoginComponent = () => {
       } catch (error) {
         return Alert.error(
           `<div role="alert">
-                  ${error.response.data.message}
+                  <i class="fa fa-times-circle" aria-hidden="true"></i> ${error.response.data.message}
                   </div>`,
           {
             html: true,
