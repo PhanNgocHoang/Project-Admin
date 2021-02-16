@@ -14,7 +14,7 @@ export const AdminRouteComponent = () => {
         <Route path="/authors" component={AuthorComponent} />
         <Route path="/booktypes" component={TypeBookComponent} />
         <Route path="/publishers" component={PublisherComponent} />
-        <Route path="/" component={Dashboard} />
+        {/* <Route path="/" component={Dashboard} /> */}
       </Switch>
     </div>
   );
