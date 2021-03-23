@@ -5,16 +5,24 @@ import { AuthorComponent } from "./author/author";
 import { Dashboard } from "./dashbroad/dashboard";
 import { TypeBookComponent } from "./typesbook/typesbook";
 import { PublisherComponent } from "./publisher/publishers";
+import { UserComponent } from "./user/user";
+import { BorrowComponent } from "./user/order";
+import { BookDetails } from "./books/bookDetails";
+import { UpdateBook } from "./books/updateBook";
 
 export const AdminRouteComponent = () => {
   return (
     <div>
       <Switch>
+        <Route path="/books/update/:bookId" component={UpdateBook} />
+        <Route path="/books/:bookId" component={BookDetails} />
+        <Route path="/borrows" component={BorrowComponent} />
+        <Route path="/users" component={UserComponent} />
         <Route path="/books" component={BooksComponent} />
         <Route path="/authors" component={AuthorComponent} />
         <Route path="/booktypes" component={TypeBookComponent} />
         <Route path="/publishers" component={PublisherComponent} />
-        {/* <Route path="/" component={Dashboard} /> */}
+        <Route path="/" component={Dashboard} />
       </Switch>
     </div>
   );

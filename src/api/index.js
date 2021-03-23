@@ -1,15 +1,18 @@
 const axios = require("axios");
-
+const jwt = localStorage.getItem("token");
 const instance = axios.create({
-  baseURL: `https://e-libraryapi.herokuapp.com/`,
-  // baseURL: `http://localhost:4000`,
+  // baseURL: `https://e-libraryapi.herokuapp.com/`,
+  baseURL: `http://localhost:4000`,
+  // baseURL: `https://e-libraryapi.azurewebsites.net`,
   headers: {
     "Content-Type": "application/json",
+    Authorization: "Bearer " + jwt,
   },
 });
 const upload = axios.create({
-  baseURL: `https://e-libraryapi.herokuapp.com/`,
-  // baseURL: `http://localhost:4000`,
+  // baseURL: `https://e-libraryapi.herokuapp.com/`,
+  baseURL: `http://localhost:4000`,
+  // baseURL: `https://e-libraryapi.azurewebsites.net`,
   headers: {
     "Content-Type": "multipart/form-data",
   },
@@ -26,7 +29,6 @@ export const updateBookType = async function (values, params) {
 export const getBookType = async function (params) {
   return await instance.get(`/typebook?${params}`);
 };
-
 export const deletetBookTypeApi = async function (params) {
   return await instance.delete(`/typebook/${params}`);
 };
@@ -70,10 +72,13 @@ export const getBookDetail = async function (params) {
   return await instance.get(`/books/${params}`);
 };
 export const createBook = async function (params) {
-  return await instance.post(`/books/${params}`);
+  return await instance.post(`/books/createBook`, params);
 };
 export const updateBook = async function (params) {
   return await instance.put(`/books/${params}`);
+};
+export const deleteBook = async function (params) {
+  return await instance.delete(`/books/${params}`);
 };
 export const getAllBookTypes = async function () {
   return await instance.get("/typebook/getAll");
@@ -92,4 +97,13 @@ export const uploadFile = async function (params) {
 };
 export const deleteFile = async function (params) {
   return await instance.post("/upload/delete/file", params);
+};
+export const getUsers = async function (params) {
+  return await instance.get(`/users?${params}`);
+};
+export const getBorrows = async function (params) {
+  return await instance.get(`/order?${params}`);
+};
+export const getDashboard = async function () {
+  return await instance.get("/dashboard");
 };

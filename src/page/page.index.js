@@ -21,7 +21,6 @@ export const PageIndex = () => {
     <div>
       <Alert stack={{ limit: 3 }} />
       <NavComponent />
-      <Dashboard />
       <HeaderComponent user={user}></HeaderComponent>
     </div>
   );

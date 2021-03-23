@@ -1,6 +1,6 @@
 import * as types from "./../constants/actionTypes";
 const initialState = {
-  data: [],
+  data: {},
 };
 let myReducers = (state = initialState, action) => {
   switch (action.type) {

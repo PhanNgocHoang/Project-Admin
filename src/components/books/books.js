@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import Alert from "react-s-alert";
 import queryString from "query-string";
+import Iframe from "react-iframe";
+import { NavLink } from "react-router-dom";
 import {
   Table,
   Button,
@@ -11,6 +13,7 @@ import {
   Col,
   Card,
   CardGroup,
+  Image,
 } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import Paginations from "react-js-pagination";
@@ -27,37 +30,44 @@ import {
   getBookDetail,
   uploadImages,
   uploadFile,
-  deleteFile,
+  deleteBook,
 } from "../../api/index";
 import * as types from "../../constants/actionTypes";
 const validationSchema = yup.object().shape({
-  book_name: yup
-    .string()
-    .required("Book name is required")
-    .matches("^[a-zA-Z0-9 ]*$", "Publisher name not valid"),
-  author: yup.array().min(1, "Please choose a author"),
+  book_name: yup.string().required("Book name is required"),
+  authors: yup.lazy((val) =>
+    Array.isArray(val) ? yup.array().of(yup.string()) : yup.string()
+  ),
   book_type: yup.string().required("Book type is required"),
   publisher: yup.string().required("Book publisher is required"),
-  // images: yup.array().min(1, "Book image is required"),
-  // file: yup.object(),
+  images: yup.string().required("Book image is required"),
+  file: yup.string().required("Book file is required"),
   description: yup.string().required("Book description is required"),
+  price: yup.number().required("Book price is required"),
 });
 export const BooksComponent = () => {
   const dispatch = useDispatch();
-  const initialValues = {
+  const [books, setBooks] = useState([]);
+  const [bookDetails, setBookDetails] = useState({
+    _id: "",
     book_name: "",
-    author: [],
+    authors: [{}],
     book_type: "",
     publisher: "",
-    // images: [],
-    // file: {},
+    images: "",
+    file: "",
     description: "",
-  };
-  const [books, setBooks] = useState([]);
-  let bookImages = useSelector((state) => {
-    return state.book.data;
   });
-  const [booksFile, setBooksFile] = useState({});
+  const initialValues = {
+    book_name: "",
+    authors: [],
+    book_type: "",
+    publisher: "",
+    images: "",
+    file: "",
+    description: "",
+    price: "",
+  };
   const bookTypes = useSelector((state) => {
     return state.bookType.data;
   });
@@ -67,6 +77,8 @@ export const BooksComponent = () => {
   const authors = useSelector((state) => {
     return state.authors.data;
   });
+  const [bookImage, setBookImage] = useState();
+  const [bookFile, setBookFile] = useState();
   const [reload, setReload] = useState(false);
   const [pagination, setPagination] = useState({
     page: 1,
@@ -82,15 +94,12 @@ export const BooksComponent = () => {
     try {
       const paramsString = queryString.stringify(pagination);
       const result = await getBooks(paramsString);
-      if (result.status === 200) {
-        setBooks(result.data.data.data);
-        setPaginationInfo({
-          ...paginationInfo,
-          currentPage: result.data.data.currentPage,
-          totalItems: result.data.data.totalItems,
-          itemsCountPerPage: parseInt(pagination.limit),
-        });
-      }
+      setBooks(result.data.data.data);
+      setPaginationInfo({
+        ...paginationInfo,
+        currentPage: result.data.data.currentPage,
+        totalItems: result.data.data.totalItems,
+      });
     } catch (error) {
       return Alert.error(
         `<div role="alert">${error.response.data.message}</div>`,
@@ -109,6 +118,7 @@ export const BooksComponent = () => {
   const [showCreated, setShowCreated] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState(false);
   const getMore = (number) => {
     setPagination({ ...pagination, limit: number });
   };
@@ -162,87 +172,40 @@ export const BooksComponent = () => {
   const handleCloseDetails = () => {
     setShowDetails(false);
   };
-  // const handleShowDetails = async (id) => {
-  //   try {
-  //     const result = await getBookDetail(id);
-  //     if (result.status === 200) {
-  //       setPublisherDetails(result.data.data);
-  //       setShowDetails(true);
-  //     }
-  //   } catch (error) {
-  //     return Alert.error(
-  //       `<div role="alert">${error.response.data.message}</div>`,
-  //       {
-  //         html: true,
-  //         position: "top-right",
-  //         effect: "slide",
-  //       }
-  //     );
-  //   }
-  // };
-  const handleDelete = async (id) => {
-    // try {
-    //   const result = await deletetPublisher(id);
-    //   if (result.status === 200) {
-    //     setReload(!reload);
-    //     return Alert.success(
-    //       `<div role="alert">
-    //                ${result.data.message}
-    //               </div>`,
-    //       {
-    //         html: true,
-    //         position: "top-right",
-    //         effect: "slide",
-    //       }
-    //     );
-    //   }
-    // } catch (error) {
-    //   return Alert.error(
-    //     `<div role="alert">
-    //             ${error.response.data.message}</div>`,
-    //     {
-    //       html: true,
-    //       position: "top-right",
-    //       effect: "slide",
-    //     }
-    //   );
-    // }
-  };
-  // const confirmDelete = (id) => {
-  //   // eslint-disable-next-line no-restricted-globals
-  //   const result = confirm("Do you want to delete?");
-  //   if (result === true) {
-  //     handleDelete(id);
-  //   }
-  // };
-  const uploadBookImages = async (files) => {
-    if (files.length > 0) {
-      try {
-        if (bookImages.length === 0) {
-          const formData = new FormData();
-          for (const file of files) {
-            formData.append("images", file);
-          }
-          const result = await uploadImages(formData);
-          dispatch({ type: types.BOOK_IMAGE, payload: result.data.images });
-        } else {
-          const id = bookImages.map((image) => {
-            return image.cloudinary_id;
-          });
-          const result = await deleteFile({ files: id });
-          if (result.status === 200) {
-            const formData = new FormData();
-            for (const file of files) {
-              formData.append("images", file);
-            }
-            const result = await uploadImages(formData);
-            initialValues.images = result.data.images;
-            dispatch({ type: types.BOOK_IMAGE, payload: result.data.images });
-          }
+  const handleShowDetails = async (id) => {
+    try {
+      const result = await getBookDetail(id);
+      setBookDetails({
+        _id: result.data.data._id,
+        book_name: result.data.data.book_name,
+        authors: result.data.data.authors,
+        book_type: result.data.data.book_type,
+        publisher: result.data.data.publisher,
+        images: result.data.data.images,
+        file: result.data.data.file,
+        description: result.data.data.description,
+      });
+      setShowDetails(true);
+    } catch (error) {
+      return Alert.error(
+        `<div role="alert">${error.response.data.message}</div>`,
+        {
+          html: true,
+          position: "top-right",
+          effect: "slide",
         }
-      } catch (error) {
-        return Alert.error(
-          `<div role="alert"> <i class="fa fa-times-circle" aria-hidden="true"></i> ${error.response.data.message}</div>`,
+      );
+    }
+  };
+  const handleDelete = async (id) => {
+    try {
+      const result = await deleteBook(id);
+      if (result.status === 200) {
+        setReload(!reload);
+        return Alert.success(
+          `<div role="alert">
+                   ${result.data.message}
+                  </div>`,
           {
             html: true,
             position: "top-right",
@@ -250,27 +213,34 @@ export const BooksComponent = () => {
           }
         );
       }
+    } catch (error) {
+      return Alert.error(
+        `<div role="alert">
+                ${error.response.data.message}</div>`,
+        {
+          html: true,
+          position: "top-right",
+          effect: "slide",
+        }
+      );
+    }
+  };
+  const confirmDelete = (id) => {
+    // eslint-disable-next-line no-restricted-globals
+    const result = confirm("Do you want to delete?");
+    if (result === true) {
+      handleDelete(id);
     }
   };
   const uploadDoc = async (file) => {
+    setUploadStatus(true);
     const formData = new FormData();
     formData.append("doc", file);
     const result = await uploadFile(formData);
-    initialValues.file = result.data;
-    setBooksFile(result.data);
+    initialValues.file = result.data.url;
+    setUploadStatus(false);
+    return result.data.url;
   };
-  const deleteBookFile = async (cloudinary_id) => {
-    const file = bookImages.find((img) => img.cloudinary_id === cloudinary_id);
-    const result = await deleteFile({ files: [file.cloudinary_id] });
-    if (result.status === 200) {
-      bookImages = bookImages.filter((image) => {
-        return image.cloudinary_id !== cloudinary_id;
-      });
-      dispatch({ type: types.BOOK_IMAGE, payload: bookImages });
-      initialValues.file = bookImages;
-    }
-  };
-  console.log(books);
   return (
     <div className="content">
       <Alert stack={{ limit: 3 }} />
@@ -331,14 +301,14 @@ export const BooksComponent = () => {
                   </thead>
                   <tbody>
                     {books.map((book) => (
-                      <tr key={book._id}>
+                      <tr key={book.book_name}>
                         <td>{book._id}</td>
                         <td>{book.book_name}</td>
                         <td>{book.book_type.type_name}</td>
                         <td>
                           {book.authors.map((item) => (
                             <p
-                              key={item._id}
+                              key={item.authorName}
                               style={{ textOverflow: "ellipsis" }}
                             >
                               {item.authorName}
@@ -348,36 +318,30 @@ export const BooksComponent = () => {
                         <td>{book.publisher.publisherName}</td>
                         <td>{book.status === true ? "Active" : "DeActive"}</td>
                         <td className="py-2">
-                          <Button size="sm" variant="info" className="m-2">
-                            <i
-                              className="fa fa-eye"
-                              aria-hidden="true"
-                              // onClick={() => {
-                              //   handleShowDetails(publisher._id);
-                              // }}
-                            >
-                              Details
-                            </i>
-                          </Button>
-                          <Button size="sm" variant="primary" className="m-2">
-                            <i
-                              className="fa fa-pencil-square"
-                              aria-hidden="true"
-                              // onClick={() => {
-                              //   handleShowEdit(publisher._id);
-                              // }}
-                            >
-                              Edit
-                            </i>
-                          </Button>
-
+                          <NavLink to={`/books/${book._id}`}>
+                            <Button size="sm" variant="info" className="m-2">
+                              <i className="fa fa-eye" aria-hidden="true">
+                                Details
+                              </i>
+                            </Button>
+                          </NavLink>
+                          <NavLink to={`/books/update/${book._id}`}>
+                            <Button size="sm" variant="primary" className="m-2">
+                              <i
+                                className="fa fa-pencil-square"
+                                aria-hidden="true"
+                              >
+                                Edit
+                              </i>
+                            </Button>
+                          </NavLink>
                           <Button size="sm" variant="danger" className="ml-2">
                             <i
                               className="fa fa-trash"
                               aria-hidden="true"
-                              // onClick={() => {
-                              //   confirmDelete(publisher._id);
-                              // }}
+                              onClick={() => {
+                                confirmDelete(book._id);
+                              }}
                             >
                               Delete
                             </i>
@@ -411,36 +375,36 @@ export const BooksComponent = () => {
               enableReinitialize={true}
               initialValues={initialValues}
               onSubmit={async (values) => {
-                console.log(values);
-                // try {
-
-                // const result = await createPublisher(values);
-                // if (result.status === 200) {
-                //   handleCloseCreate();
-                //   setReload(!reload);
-                //   return Alert.success(
-                //     `<div role="alert">
-                //                            ${result.data.message}
-                //                           </div>`,
-                //     {
-                //       html: true,
-                //       position: "top-right",
-                //       effect: "slide",
-                //     }
-                //   );
-                // }
-                // } catch (error) {
-                // return Alert.error(
-                //   `<div role="alert">
-                //                           ${error.response.data.message}
-                //                           </div>`,
-                //   {
-                //     html: true,
-                //     position: "top-right",
-                //     effect: "slide",
-                //   }
-                // );
-                // }
+                try {
+                  const result = await createBook(values);
+                  if (result.status === 200) {
+                    handleCloseCreate();
+                    setReload(!reload);
+                    setBookImage("");
+                    setBookFile("");
+                    return Alert.success(
+                      `<div role="alert">
+                                           ${result.data.message}
+                                          </div>`,
+                      {
+                        html: true,
+                        position: "top-right",
+                        effect: "slide",
+                      }
+                    );
+                  }
+                } catch (error) {
+                  return Alert.error(
+                    `<div role="alert">
+                                          ${error.response.data.message}
+                                          </div>`,
+                    {
+                      html: true,
+                      position: "top-right",
+                      effect: "slide",
+                    }
+                  );
+                }
               }}
               validationSchema={validationSchema}
             >
@@ -458,7 +422,9 @@ export const BooksComponent = () => {
                           id="book_name"
                           name="book_name"
                           placeholder="Enter book name"
-                          onChange={props.handleChange}
+                          onChange={(event) => {
+                            props.values.book_name = event.target.value;
+                          }}
                           onBlur={props.handleBlur}
                           isInvalid={
                             props.touched.book_name && props.errors.book_name
@@ -466,6 +432,30 @@ export const BooksComponent = () => {
                         />
                         <Form.Control.Feedback type="invalid">
                           {props.touched.book_name && props.errors.book_name}
+                        </Form.Control.Feedback>
+                      </Col>
+                    </Form.Row>
+                  </Form.Group>
+                  <Form.Group>
+                    <Form.Row>
+                      <Form.Label column lg={3.5}>
+                        Book Price
+                      </Form.Label>
+                      <Col>
+                        <Form.Control
+                          lg={4}
+                          type="text"
+                          id="price"
+                          name="price"
+                          placeholder="Enter book price"
+                          onChange={(event) => {
+                            props.values.price = event.target.value;
+                          }}
+                          onBlur={props.handleBlur}
+                          isInvalid={props.touched.price && props.errors.price}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                          {props.touched.price && props.errors.price}
                         </Form.Control.Feedback>
                       </Col>
                     </Form.Row>
@@ -483,59 +473,63 @@ export const BooksComponent = () => {
                             value={type._id}
                             name="book_type"
                             key={type._id}
-                            onChange={props.handleChange}
+                            onChange={(event) => {
+                              props.values.book_type = event.target.value;
+                            }}
+                            onBlur={props.handleBlur}
+                            isInvalid={
+                              props.touched.book_type && props.errors.book_type
+                            }
                           />
                         ))}
-                        <Form.Control.Feedback type="invalid">
-                          {props.touched.book_type && props.errors.book_type}
-                        </Form.Control.Feedback>
                       </Col>
+                      <Form.Control.Feedback type="invalid">
+                        {props.touched.book_type && props.errors.book_type}
+                      </Form.Control.Feedback>
                     </Form.Row>
                   </Form.Group>
+                  <hr />
                   <Form.Group>
                     <Form.Row>
-                      <Form.Label column lg={3.5}>
+                      <Form.Label column lg={1.7}>
                         Author
                       </Form.Label>
                       <Col>
                         {authors.map((author) => (
-                          <label key={author._id} className="mt-2 ml-2">
-                            {" "}
-                            {author.authorName}
-                            <input
-                              type="checkbox"
-                              name="author"
-                              className="ml-1"
-                              onChange={(e) => {
-                                const value = e.target.checked
-                                  ? author._id
-                                  : null;
-                                if (value === null) {
-                                  const authors = props.initialValues.author;
-                                  props.initialValues.author = authors.filter(
-                                    (item) => item !== author._id
-                                  );
-                                } else {
-                                  props.initialValues.author.push(author._id);
-                                }
-                              }}
-                              value={author._id}
-                            />
-                          </label>
+                          <Form.Check
+                            key={author._id}
+                            label={author.authorName}
+                            type="checkbox"
+                            name="authors"
+                            className="ml-4"
+                            onChange={(e) => {
+                              const value = e.target.checked
+                                ? author._id
+                                : null;
+                              if (value === null) {
+                                const authors = props.initialValues.authors;
+                                const index = authors.findIndex(
+                                  (item) => item === e.target.value
+                                );
+                                props.values.authors.splice(index, 1);
+                              } else {
+                                props.values.authors.push(author._id);
+                              }
+                            }}
+                            value={author._id}
+                            onBlur={props.author}
+                            isInvalid={
+                              props.touched.authors && props.errors.authors
+                            }
+                          />
                         ))}
-                        <Form.Control.Feedback
-                          style={{
-                            width: "100%",
-                            marginTop: ".25rem",
-                            fontSize: "80%",
-                            color: "#dc3545",
-                          }}
-                        >
-                          {props.errors.author}
-                        </Form.Control.Feedback>
                       </Col>
+                      <Form.Control.Feedback>
+                        {props.touched.author && props.errors.author}
+                      </Form.Control.Feedback>
                     </Form.Row>
                   </Form.Group>
+                  <hr />
                   <Form.Group>
                     <Form.Row>
                       <Form.Label column lg={3.5}>
@@ -549,23 +543,31 @@ export const BooksComponent = () => {
                             value={publisher._id}
                             name="publisher"
                             key={publisher._id}
-                            onChange={props.handleChange}
+                            onChange={(event) => {
+                              props.values.publisher = event.target.value;
+                            }}
+                            onBlur={props.handleBlur}
+                            isInvalid={
+                              props.touched.publisher && props.errors.publisher
+                            }
                           />
                         ))}
-                        <Form.Control.Feedback type="invalid">
-                          {props.touched.publisher && props.errors.publisher}
-                        </Form.Control.Feedback>
                       </Col>
+                      <Form.Control.Feedback type="invalid">
+                        {props.touched.publisher && props.errors.publisher}
+                      </Form.Control.Feedback>
                     </Form.Row>
                   </Form.Group>
                   <Form.Group>
                     <Form.Label>Description</Form.Label>
                     <Form.Control
                       as="textarea"
-                      rows={3}
+                      rows={5}
                       name="description"
                       id="description"
-                      onChange={props.handleChange}
+                      onChange={(event) => {
+                        initialValues.description = event.target.value;
+                      }}
                       onBlur={props.handleBlur}
                       isInvalid={
                         props.touched.description && props.errors.description
@@ -578,55 +580,81 @@ export const BooksComponent = () => {
                   <Form.Group>
                     <Form.Label>Images</Form.Label>
                     <Form.File
-                      required
-                      multiple
                       accept="image/png, image/jpeg"
-                      onChange={(e) => {
-                        uploadBookImages(e.target.files);
+                      onChange={async (event) => {
+                        try {
+                          const formData = new FormData();
+                          formData.append("image", event.target.files[0]);
+                          if (event.target.files[0] !== undefined) {
+                            setUploadStatus(true);
+                            const response = await uploadImages(formData);
+                            setBookImage(response.data.url);
+                            setUploadStatus(false);
+                            return (props.values.images = response.data.url);
+                          }
+                        } catch (error) {
+                          return Alert.error(
+                            `<div role="alert"> <i class="fa fa-times-circle" aria-hidden="true"></i> ${error.response.data.message}</div>`,
+                            {
+                              html: true,
+                              position: "top-right",
+                              effect: "slide",
+                            }
+                          );
+                        }
                       }}
+                      name="images"
+                      isInvalid={props.touched.images && props.errors.images}
+                      disabled={uploadStatus}
                     />
-
-                    <CardGroup className="mt-3">
-                      {bookImages.map((item) => (
-                        <Card
-                          style={{ width: "18rem" }}
-                          className="mb-3 ml-3"
-                          key={item.cloudinary_id}
-                        >
-                          <i
-                            className="fa fa-times-circle"
-                            aria-hidden="true"
-                            style={{ float: "right" }}
-                            onClick={() => {
-                              deleteBookFile(item.cloudinary_id);
-                            }}
-                          ></i>
+                    <Form.Control.Feedback type="invalid">
+                      {props.touched.images && props.errors.images}
+                    </Form.Control.Feedback>
+                    {bookImage ? (
+                      <CardGroup className="mt-3">
+                        <Card style={{ width: "18rem" }} className="mb-3 ml-3">
                           <Card.Img
                             variant="top"
-                            src={item.url}
-                            style={{ width: "100%", height: "100%" }}
+                            src={bookImage}
+                            style={{ width: "30%", height: "100%" }}
                           />
                         </Card>
-                      ))}
-                    </CardGroup>
+                      </CardGroup>
+                    ) : null}
                   </Form.Group>
                   <Form.Group>
                     <Form.Label>File</Form.Label>
                     <Form.File
-                      required
-                      label="Choose a PDF file"
-                      accept=".pdf"
-                      onChange={(e) => {
-                        uploadDoc(e.target.files[0]);
+                      name="file"
+                      label="Choose a PDF file or audio file"
+                      accept=".pdf,audio/*"
+                      onChange={(event) => {
+                        const url = uploadDoc(event.target.files[0]);
+                        return (props.values.file = url);
                       }}
+                      isInvalid={props.touched.file && props.errors.file}
+                      disabled={uploadStatus}
                     />
-                    <Form.Control.Feedback type="invalid"></Form.Control.Feedback>
+                    <Form.Control.Feedback type="invalid">
+                      {props.touched.file && props.errors.file}
+                    </Form.Control.Feedback>
+                    {bookFile ? (
+                      <CardGroup className="mt-3">
+                        <Card style={{ width: "18rem" }} className="mb-3 ml-3">
+                          <Iframe url={bookFile} />
+                        </Card>
+                      </CardGroup>
+                    ) : null}
                   </Form.Group>
                   <Modal.Footer>
                     <Button variant="secondary" onClick={handleCloseCreate}>
                       Close
                     </Button>
-                    <Button variant="success" type="submit">
+                    <Button
+                      variant="success"
+                      type="submit"
+                      disabled={uploadStatus}
+                    >
                       Created
                     </Button>
                   </Modal.Footer>
@@ -636,162 +664,6 @@ export const BooksComponent = () => {
           </div>
         </Modal.Body>
       </Modal>
-
-      <Modal show={showEdit} onHide={handleCloseEdit}>
-        <Modal.Header closeButton>
-          <Modal.Title>Edit Book Type</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <div className="card-body card-block">
-            <Formik
-              // initialValues={publisherDetail}
-              onSubmit={async (values) => {
-                // try {
-                //   const result = await updatePublisher(values._id, values);
-                //   if (result.status === 200) {
-                //     handleCloseEdit();
-                //     setReload(!reload);
-                //     return Alert.success(
-                //       `<div role="alert">
-                //                             ${result.data.message}
-                //                             </div>`,
-                //       {
-                //         html: true,
-                //         position: "top-right",
-                //         effect: "slide",
-                //       }
-                //     );
-                //   }
-                // } catch (error) {
-                //   handleCloseEdit();
-                //   return Alert.error(
-                //     `<div role="alert">
-                //                             ${error.response.data.message}
-                //                             </div>`,
-                //     {
-                //       html: true,
-                //       position: "top-right",
-                //       effect: "slide",
-                //     }
-                //   );
-                // }
-              }}
-              validationSchema={validationSchema}
-            >
-              {(props) => (
-                <form className="form-horizontal" onSubmit={props.handleSubmit}>
-                  <div className="row form-group">
-                    <div className="col col-md-3">
-                      <label
-                        htmlFor="author-name-input"
-                        className=" form-control-label"
-                      >
-                        Publisher Name
-                      </label>
-                    </div>
-                    <div className="col-12 col-md-9">
-                      <Form.Control
-                        type="text"
-                        id="publisherName"
-                        name="publisherName"
-                        placeholder="Enter publisher name"
-                        onChange={props.handleChange}
-                        onBlur={props.handleBlur}
-                        value={props.values.publisherName}
-                        isInvalid={
-                          props.touched.publisherName &&
-                          props.errors.publisherName
-                        }
-                      />
-                      <Form.Control.Feedback type="invalid"></Form.Control.Feedback>
-                    </div>
-                    <small style={{ color: "#ff4d4d" }}>
-                      {props.touched.publisherName &&
-                        props.errors.publisherName}
-                    </small>
-                  </div>
-                  <div className="row form-group">
-                    <div className="col col-md-3">
-                      <label
-                        htmlFor="author-name-input"
-                        className=" form-control-label"
-                      >
-                        Address
-                      </label>
-                    </div>
-                    <div className="col-12 col-md-9">
-                      <Form.Control
-                        type="text"
-                        id="address"
-                        name="address"
-                        placeholder="Enter address"
-                        onChange={props.handleChange}
-                        onBlur={props.handleBlur}
-                        value={props.values.address}
-                        isInvalid={
-                          props.touched.address && props.errors.address
-                        }
-                      />
-                      <Form.Control.Feedback type="invalid"></Form.Control.Feedback>
-                    </div>
-                    <small style={{ color: "#ff4d4d" }}>
-                      {props.touched.address && props.errors.address}
-                    </small>
-                  </div>
-                  <Modal.Footer>
-                    <Button variant="secondary" onClick={handleCloseEdit}>
-                      Close
-                    </Button>
-                    <Button variant="success" type="submit">
-                      Save
-                    </Button>
-                  </Modal.Footer>
-                </form>
-              )}
-            </Formik>
-          </div>
-        </Modal.Body>
-      </Modal>
-      {/* 
-      <Modal show={showDetails} onHide={handleCloseDetails}>
-        <Modal.Header closeButton>
-          <Modal.Title>Publisher Detail</Modal.Title>
-        </Modal.Header>
-        <Modal.Body className="show-grid">
-          <Container>
-            <Row>
-              <Col xs={6} md={4}>
-                ID
-              </Col>
-              <Col xs={12} md={8}>
-                {publisherDetail._id}
-              </Col>
-            </Row>
-
-            <Row>
-              <Col xs={6} md={4}>
-                Publisher Name
-              </Col>
-              <Col xs={12} md={8}>
-                {publisherDetail.publisherName}
-              </Col>
-            </Row>
-            <Row>
-              <Col xs={6} md={4}>
-                Address
-              </Col>
-              <Col xs={12} md={8}>
-                {publisherDetail.address}
-              </Col>
-            </Row>
-          </Container>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleCloseDetails}>
-            Close
-          </Button>
-        </Modal.Footer>
-      </Modal> */}
     </div>
   );
 };

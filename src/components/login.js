@@ -28,7 +28,7 @@ export const LoginComponent = () => {
           const data = info.data;
           localStorage.setItem("token", data.token);
           dispatch({ type: "DATA_LOGIN", payload: data.user });
-          return Alert.success(
+          Alert.success(
             `<div role="alert">  <i class="fa fa-check-circle" aria-hidden="true"> Login Successfully
                     </div>`,
             {
@@ -37,6 +37,7 @@ export const LoginComponent = () => {
               effect: "slide",
             }
           );
+          return (window.location.href = "/");
         }
       } catch (error) {
         return Alert.error(
