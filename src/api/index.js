@@ -2,8 +2,8 @@ const axios = require("axios");
 const jwt = localStorage.getItem("token");
 const instance = axios.create({
   // baseURL: `https://e-libraryapi.herokuapp.com/`,
-  baseURL: `http://localhost:4000`,
-  // baseURL: `https://e-libraryapi.azurewebsites.net`,
+  // baseURL: `http://localhost:4000`,
+  baseURL: `https://e-libraryapi.azurewebsites.net`,
   headers: {
     "Content-Type": "application/json",
     Authorization: "Bearer " + jwt,
@@ -11,8 +11,8 @@ const instance = axios.create({
 });
 const upload = axios.create({
   // baseURL: `https://e-libraryapi.herokuapp.com/`,
-  baseURL: `http://localhost:4000`,
-  // baseURL: `https://e-libraryapi.azurewebsites.net`,
+  // baseURL: `http://localhost:4000`,
+  baseURL: `https://e-libraryapi.azurewebsites.net`,
   headers: {
     "Content-Type": "multipart/form-data",
   },
@@ -74,8 +74,8 @@ export const getBookDetail = async function (params) {
 export const createBook = async function (params) {
   return await instance.post(`/books/createBook`, params);
 };
-export const updateBook = async function (params) {
-  return await instance.put(`/books/${params}`);
+export const updateBook = async function (params, data) {
+  return await instance.put(`/books/${params}`, data);
 };
 export const deleteBook = async function (params) {
   return await instance.delete(`/books/${params}`);

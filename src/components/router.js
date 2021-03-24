@@ -9,12 +9,14 @@ import { UserComponent } from "./user/user";
 import { BorrowComponent } from "./user/order";
 import { BookDetails } from "./books/bookDetails";
 import { UpdateBook } from "./books/updateBook";
+import { CreateBookComponent } from "./books/create";
 
 export const AdminRouteComponent = () => {
   return (
     <div>
       <Switch>
         <Route path="/books/update/:bookId" component={UpdateBook} />
+        <Route path="/books/add" component={CreateBookComponent} />
         <Route path="/books/:bookId" component={BookDetails} />
         <Route path="/borrows" component={BorrowComponent} />
         <Route path="/users" component={UserComponent} />

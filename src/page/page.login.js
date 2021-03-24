@@ -3,9 +3,8 @@ import { useAuth } from "../hooks/useAuth";
 import { Redirect } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { LoginComponent } from "../components/login";
-import Alert from "react-s-alert";
 export const LoginPage = () => {
-  const fetchMeApiData = useAuth();
+  useAuth();
   const user = useSelector((state) => {
     return state.login.data;
   });

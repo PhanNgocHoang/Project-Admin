@@ -1,21 +1,16 @@
 import React, { useEffect, useState } from "react";
-import {
-  Row,
-  Container,
-  Col,
-  Form,
-  Button,
-  Modal,
-  Card,
-  CardGroup,
-  Image,
-} from "react-bootstrap";
+import { Col, Form, Button, Card, CardGroup } from "react-bootstrap";
 import {
   getBookDetail,
   getAllAuthor,
   getAllBookTypes,
   getAllPublisher,
+  uploadImages,
+  uploadFile,
+  updateBook,
 } from "../../api/index";
+import { yupResolver } from "@hookform/resolvers/yup";
+import Alert from "react-s-alert";
 import * as types from "../../constants/actionTypes";
 import { useDispatch, useSelector } from "react-redux";
 import { useForm } from "react-hook-form";
@@ -34,7 +29,12 @@ const validationSchema = yup.object().shape({
   price: yup.number().required("Book price is required"),
 });
 export const UpdateBook = (props) => {
-  const { register, handleSubmit, watch, errors } = useForm();
+  const [isLoad, setIsLoad] = useState(false);
+  const { register, handleSubmit, errors } = useForm({
+    resolver: yupResolver(validationSchema),
+    mode: "all",
+    shouldFocusError: true,
+  });
   const dispatch = useDispatch();
   const bookTypes = useSelector((state) => {
     return state.bookType.data;
@@ -45,8 +45,11 @@ export const UpdateBook = (props) => {
   const authors = useSelector((state) => {
     return state.authors.data;
   });
+  const [bookImage, setBookImage] = useState("");
+  const [doc, setDoc] = useState();
   const bookId = props.match.params.bookId;
   const [bookDetails, setBookDetails] = useState();
+  const [uploadStatus, setUploadStatus] = useState(false);
   const getData = async () => {
     const author = await getAllAuthor();
     const publisher = await getAllPublisher();
@@ -58,12 +61,64 @@ export const UpdateBook = (props) => {
   useEffect(() => {
     getBookDetail(bookId).then((response) => {
       setBookDetails(response.data.data);
+      setBookImage(response.data.data.images);
+      setDoc({
+        url: response.data.data.file,
+        fileType: response.data.data.fileType,
+      });
     });
     getData();
-  }, [bookId]);
-  const onSubmit = async () => {};
+  }, [bookId, isLoad]);
+  const onSubmit = async (data) => {
+    setUploadStatus(true);
+    data.images = bookImage;
+    data.file = doc.url;
+    data.fileType = doc.fileType;
+    try {
+      const response = await updateBook(bookDetails._id, data);
+      setUploadStatus(false);
+      Alert.success(`<div role="alert">${response.data.message}</div>`, {
+        html: true,
+        position: "top-right",
+        effect: "slide",
+      });
+      return setIsLoad(!isLoad);
+    } catch (error) {
+      setUploadStatus(false);
+      return Alert.error(
+        `<div role="alert">${error.response.data.message}</div>`,
+        {
+          html: true,
+          position: "top-right",
+          effect: "slide",
+        }
+      );
+    }
+  };
+  const uploadDoc = async (file) => {
+    if (file !== undefined) {
+      try {
+        setUploadStatus(true);
+        const formData = new FormData();
+        formData.append("doc", file);
+        const result = await uploadFile(formData);
+        setDoc(result.data);
+        return setUploadStatus(false);
+      } catch (error) {
+        return Alert.error(
+          `<div role="alert">${error.response.data.message}</div>`,
+          {
+            html: true,
+            position: "top-right",
+            effect: "slide",
+          }
+        );
+      }
+    }
+  };
   return (
     <div className="content">
+      <Alert stack={{ limit: 3 }} />
       <div className="animated fadeIn">
         <div className="row">
           <div className="col-md-12">
@@ -76,7 +131,10 @@ export const UpdateBook = (props) => {
                     </strong>
                   </div>
                   <div className="card-body">
-                    <Form className="form-horizontal" onSubmit={handleSubmit}>
+                    <Form
+                      className="form-horizontal"
+                      onSubmit={handleSubmit(onSubmit)}
+                    >
                       <Form.Group>
                         <Form.Row>
                           <Form.Label column lg={3.5}>
@@ -91,10 +149,11 @@ export const UpdateBook = (props) => {
                               ref={register}
                               placeholder="Enter book name"
                               defaultValue={bookDetails.book_name}
+                              isInvalid={errors.book_name}
                             />
-                            {/* <Form.Control.Feedback type="invalid">
-                            
-                            </Form.Control.Feedback> */}
+                            <Form.Control.Feedback type="invalid">
+                              {errors.book_name?.message}
+                            </Form.Control.Feedback>
                           </Col>
                         </Form.Row>
                       </Form.Group>
@@ -109,11 +168,13 @@ export const UpdateBook = (props) => {
                               type="text"
                               id="price"
                               name="price"
+                              ref={register}
                               placeholder="Enter book price"
                               defaultValue={bookDetails.price}
+                              isInvalid={errors.book_name}
                             />
                             <Form.Control.Feedback type="invalid">
-                              {/* {prop.touched.price && prop.errors.price} */}
+                              {errors.price?.message}
                             </Form.Control.Feedback>
                           </Col>
                         </Form.Row>
@@ -128,10 +189,12 @@ export const UpdateBook = (props) => {
                               <Form.Check
                                 type="radio"
                                 label={type.type_name}
+                                ref={register}
                                 defaultValue={type._id}
                                 name="book_type"
                                 key={type._id}
-                                checked={
+                                isInvalid={errors.book_type}
+                                defaultChecked={
                                   type._id === bookDetails.book_type._id
                                     ? true
                                     : false
@@ -139,7 +202,9 @@ export const UpdateBook = (props) => {
                               />
                             ))}
                           </Col>
-                          <Form.Control.Feedback type="invalid"></Form.Control.Feedback>
+                          <Form.Control.Feedback type="invalid">
+                            {errors.book_type?.message}
+                          </Form.Control.Feedback>
                         </Form.Row>
                       </Form.Group>
                       <hr />
@@ -155,7 +220,9 @@ export const UpdateBook = (props) => {
                                 label={author.authorName}
                                 type="checkbox"
                                 name="authors"
-                                checked={
+                                ref={register}
+                                id={author._id}
+                                defaultChecked={
                                   bookDetails.authors.some(
                                     (item) => item._id === author._id
                                   )
@@ -163,25 +230,14 @@ export const UpdateBook = (props) => {
                                     : false
                                 }
                                 className="ml-4"
-                                // onChange={(e) => {
-                                //   const value = e.target.checked
-                                //     ? author._id
-                                //     : null;
-                                //   if (value === null) {
-                                //     const authors = prop.initialValues.authors;
-                                //     const index = authors.findIndex(
-                                //       (item) => item === e.target.value
-                                //     );
-                                //     prop.values.authors.splice(index, 1);
-                                //   } else {
-                                //     prop.values.authors.push(author._id);
-                                //   }
-                                // }}
                                 defaultValue={author._id}
+                                isInvalid={errors.authors}
                               />
                             ))}
                           </Col>
-                          <Form.Control.Feedback></Form.Control.Feedback>
+                          <Form.Control.Feedback>
+                            {errors.authors?.message}
+                          </Form.Control.Feedback>
                         </Form.Row>
                       </Form.Group>
                       <hr />
@@ -194,19 +250,23 @@ export const UpdateBook = (props) => {
                             {publishers.map((publisher) => (
                               <Form.Check
                                 type="radio"
+                                ref={register}
                                 label={publisher.publisherName}
                                 defaultValue={publisher._id}
                                 name="publisher"
                                 key={publisher._id}
-                                checked={
-                                  publisher._id == bookDetails.publisher._id
+                                isInvalid={errors.publisher}
+                                defaultChecked={
+                                  publisher._id === bookDetails.publisher._id
                                     ? true
                                     : false
                                 }
                               />
                             ))}
                           </Col>
-                          <Form.Control.Feedback type="invalid"></Form.Control.Feedback>
+                          <Form.Control.Feedback type="invalid">
+                            {errors.publisher?.message}
+                          </Form.Control.Feedback>
                         </Form.Row>
                       </Form.Group>
                       <Form.Group>
@@ -214,52 +274,49 @@ export const UpdateBook = (props) => {
                         <Form.Control
                           as="textarea"
                           rows={5}
+                          ref={register}
                           name="description"
+                          isInvalid={errors.description}
                           id="description"
                           defaultValue={bookDetails.description}
-                          //   onChange={(event) => {
-                          //     initialValues.description = event.target.value;
-                          //   }}
                         />
-                        <Form.Control.Feedback type="invalid"></Form.Control.Feedback>
+                        <Form.Control.Feedback type="invalid">
+                          {errors.description?.message}
+                        </Form.Control.Feedback>
                       </Form.Group>
                       <Form.Group>
                         <Form.Label>Images</Form.Label>
                         <Form.File
                           accept="image/png, image/jpeg"
-                          //   onChange={async (event) => {
-                          //     try {
-                          //       const formData = new FormData();
-                          //       formData.append(
-                          //         "image",
-                          //         event.target.files[0]
-                          //       );
-                          //       if (event.target.files[0] !== undefined) {
-                          //         setUploadStatus(true);
-                          //         const response = await uploadImages(
-                          //           formData
-                          //         );
-                          //         setBookImage(response.data.url);
-                          //         setUploadStatus(false);
-                          //         return (prop.values.images =
-                          //           response.data.url);
-                          //       }
-                          //     } catch (error) {
-                          //       return Alert.error(
-                          //         `<div role="alert"> <i class="fa fa-times-circle" aria-hidden="true"></i> ${error.response.data.message}</div>`,
-                          //         {
-                          //           html: true,
-                          //           position: "top-right",
-                          //           effect: "slide",
-                          //         }
-                          //       );
-                          //     }
-                          //   }}
+                          ref={register}
+                          isInvalid={errors.images}
+                          onChange={async (event) => {
+                            try {
+                              const formData = new FormData();
+                              formData.append("image", event.target.files[0]);
+                              if (event.target.files[0] !== undefined) {
+                                setUploadStatus(true);
+                                const response = await uploadImages(formData);
+                                setBookImage(response.data.url);
+                                return setUploadStatus(false);
+                              }
+                            } catch (error) {
+                              return Alert.error(
+                                `<div role="alert"> <i class="fa fa-times-circle" aria-hidden="true"></i> ${error.response.data.message}</div>`,
+                                {
+                                  html: true,
+                                  position: "top-right",
+                                  effect: "slide",
+                                }
+                              );
+                            }
+                          }}
                           name="images"
-
-                          //   disabled={uploadStatus}
+                          disabled={uploadStatus}
                         />
-                        <Form.Control.Feedback type="invalid"></Form.Control.Feedback>
+                        <Form.Control.Feedback type="invalid">
+                          {errors.images?.message}
+                        </Form.Control.Feedback>
                         {bookDetails.images ? (
                           <CardGroup className="mt-3">
                             <Card
@@ -268,7 +325,7 @@ export const UpdateBook = (props) => {
                             >
                               <Card.Img
                                 variant="top"
-                                src={bookDetails.images}
+                                src={bookImage}
                                 style={{ width: "30%", height: "100%" }}
                               />
                             </Card>
@@ -279,24 +336,26 @@ export const UpdateBook = (props) => {
                         <Form.Label>File</Form.Label>
                         <Form.File
                           name="file"
+                          ref={register}
+                          isInvalid={errors.file}
                           label="Choose a PDF file or audio file"
                           accept=".pdf,audio/*"
-                          //   onChange={(event) => {
-                          //     const url = uploadDoc(event.target.files[0]);
-                          //     return (prop.values.file = url);
-                          //   }}
-                          //   isInvalid={prop.touched.file && prop.errors.file}
-                          //   disabled={uploadStatus}
+                          onChange={async (event) => {
+                            await uploadDoc(event.target.files[0]);
+                          }}
+                          disabled={uploadStatus}
                         />
-                        <Form.Control.Feedback type="invalid"></Form.Control.Feedback>
-                        {bookDetails.file ? (
+                        <Form.Control.Feedback type="invalid">
+                          {errors.file?.message}
+                        </Form.Control.Feedback>
+                        {doc ? (
                           <CardGroup className="mt-3">
                             <Card
                               style={{ width: "18rem", height: "50rem" }}
                               className="mb-3 ml-3"
                             >
                               <Iframe
-                                url={bookDetails.file}
+                                url={doc.url}
                                 width="100%"
                                 height="100%"
                               />
@@ -307,9 +366,9 @@ export const UpdateBook = (props) => {
                       <Button
                         variant="success"
                         type="submit"
-                        //   disabled={uploadStatus}
+                        disabled={uploadStatus}
                       >
-                        Created
+                        {uploadStatus ? "Saving....." : " Save"}
                       </Button>
                     </Form>
                   </div>

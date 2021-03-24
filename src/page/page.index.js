@@ -5,7 +5,6 @@ import { Redirect } from "react-router-dom";
 import Alert from "react-s-alert";
 import { useAuth } from "../hooks/useAuth";
 import { useSelector } from "react-redux";
-import { Dashboard } from "../components/dashbroad/dashboard";
 export const PageIndex = () => {
   const user = useSelector((state) => {
     return state.login.data;

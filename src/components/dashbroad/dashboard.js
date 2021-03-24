@@ -10,8 +10,6 @@ export const Dashboard = () => {
   useEffect(() => {
     getData();
   }, []);
-  console.log(dashboard);
-
   return (
     <div className="content">
       {/* Animated */}

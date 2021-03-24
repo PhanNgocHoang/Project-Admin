@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Link, Redirect } from "react-router-dom";
 import { Form, Button } from "react-bootstrap";
 import { useFormik } from "formik";
@@ -14,7 +14,6 @@ const validationSchema = yup.object().shape({
     .required("Password is required"),
 });
 export const LoginComponent = () => {
-  const [login, setLogin] = useState(false);
   const dispatch = useDispatch();
   const formik = useFormik({
     initialValues: {
@@ -105,7 +104,7 @@ export const LoginComponent = () => {
                   {errors.password}
                 </Form.Control.Feedback>
               </Form.Group>
-              <Button variant="info" type="submit" disabled={login}>
+              <Button variant="info" type="submit">
                 Login
               </Button>
             </Form>
