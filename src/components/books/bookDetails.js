@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Row, Container, Col } from "react-bootstrap";
+import { Row, Container, Col, Image } from "react-bootstrap";
 import { getBookDetail } from "../../api/index";
 import Iframe from "react-iframe";
 export const BookDetails = (props) => {
@@ -57,7 +57,7 @@ export const BookDetails = (props) => {
                       <Row style={{ marginBottom: 10 }}>
                         <Col>Image</Col>
                         <Col>
-                          <img
+                          <Image
                             src={bookDetails.images}
                             style={{ width: 200 }}
                           />
