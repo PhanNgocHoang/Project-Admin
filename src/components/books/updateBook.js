@@ -59,6 +59,7 @@ export const UpdateBook = (props) => {
     dispatch({ type: types.BOOK_PUBLISHER, payload: publisher.data.data });
   };
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     getBookDetail(bookId).then((response) => {
       setBookDetails(response.data.data);
       setBookImage(response.data.data.images);
@@ -67,7 +68,9 @@ export const UpdateBook = (props) => {
         fileType: response.data.data.fileType,
       });
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     getData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bookId, isLoad]);
   const onSubmit = async (data) => {
     setUploadStatus(true);

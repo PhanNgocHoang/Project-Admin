@@ -55,7 +55,9 @@ export const CreateBookComponent = () => {
     dispatch({ type: types.BOOK_PUBLISHER, payload: publisher.data.data });
   };
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     getData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const onSubmit = async (data) => {
     setUploadStatus(true);
