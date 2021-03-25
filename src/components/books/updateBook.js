@@ -9,13 +9,13 @@ import {
   uploadFile,
   updateBook,
 } from "../../api/index";
-import { yupResolver } from "@hookform/resolvers/yup";
 import Alert from "react-s-alert";
 import * as types from "../../constants/actionTypes";
 import { useDispatch, useSelector } from "react-redux";
 import { useForm } from "react-hook-form";
 import Iframe from "react-iframe";
 import * as yup from "yup";
+import { yupResolver } from "@hookform/resolvers/yup";
 const validationSchema = yup.object().shape({
   book_name: yup.string().required("Book name is required"),
   authors: yup.lazy((val) =>
