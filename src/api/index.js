@@ -2,8 +2,8 @@ const axios = require("axios");
 const jwt = localStorage.getItem("token");
 const instance = axios.create({
   // baseURL: `https://e-libraryapi.herokuapp.com/`,
-  // baseURL: `http://localhost:4000`,
-  baseURL: `https://e-libraryapi.azurewebsites.net`,
+  baseURL: `http://localhost:4000`,
+
   headers: {
     "Content-Type": "application/json",
     Authorization: "Bearer " + jwt,
@@ -11,8 +11,7 @@ const instance = axios.create({
 });
 const upload = axios.create({
   // baseURL: `https://e-libraryapi.herokuapp.com/`,
-  // baseURL: `http://localhost:4000`,
-  baseURL: `https://e-libraryapi.azurewebsites.net`,
+  baseURL: `http://localhost:4000`,
   headers: {
     "Content-Type": "multipart/form-data",
   },
@@ -106,4 +105,7 @@ export const getBorrows = async function (params) {
 };
 export const getDashboard = async function () {
   return await instance.get("/dashboard");
+};
+export const PaymentHistory = async function (userId, params) {
+  return await instance.get(`/payment/history/${userId}?${params}`);
 };

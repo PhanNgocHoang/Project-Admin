@@ -223,7 +223,7 @@ export const AuthorComponent = () => {
                     <tr>
                       <th style={{ width: "20%" }}>ID</th>
                       <th>Author Name</th>
-                      <th>Day Of Birth</th>
+                      <th>Date Of Birth</th>
                       <th style={{ width: "20%" }}></th>
                     </tr>
                   </thead>
@@ -363,7 +363,7 @@ export const AuthorComponent = () => {
                         htmlFor="author-name-input"
                         className=" form-control-label"
                       >
-                        Day Of Birth
+                        Date Of Birth
                       </label>
                     </div>
                     <div className="col-12 col-md-9">
@@ -474,7 +474,7 @@ export const AuthorComponent = () => {
                         htmlFor="author-name-input"
                         className=" form-control-label"
                       >
-                        Day Of Birth
+                        Date Of Birth
                       </label>
                     </div>
                     <div className="col-12 col-md-8">
@@ -549,7 +549,7 @@ export const AuthorComponent = () => {
             </Row>
             <Row>
               <Col xs={6} md={4}>
-                Day Of Birth
+                Date Of Birth
               </Col>
               <Col xs={12} md={8}>
                 {moment(authorDetail.dob).format("YYYY-MM-DD")}

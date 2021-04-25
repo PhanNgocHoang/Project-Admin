@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import Alert from "react-s-alert";
 import queryString from "query-string";
-import { Table } from "react-bootstrap";
+import { Table, Button } from "react-bootstrap";
 import Paginations from "react-js-pagination";
 import "react-s-alert/dist/s-alert-default.css";
 import "react-s-alert/dist/s-alert-css-effects/slide.css";
 import moment from "moment";
 import { getUsers } from "../../api/index";
+import { NavLink } from "react-router-dom";
 export const UserComponent = () => {
   const [users, setUser] = useState([]);
   const [pagination, setPagination] = useState({
@@ -56,8 +57,6 @@ export const UserComponent = () => {
   const handleSearch = (value) => {
     setPagination({ ...pagination, searchKey: value });
   };
-  console.log(paginationInfo);
-
   return (
     <div className="content">
       <Alert stack={{ limit: 3 }} />
@@ -105,6 +104,8 @@ export const UserComponent = () => {
                       <th>Email</th>
                       <th>Total eCoins</th>
                       <th>Join Date</th>
+                      <th>Status</th>
+                      <th>Action</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -115,6 +116,39 @@ export const UserComponent = () => {
                         <td>{user.email}</td>
                         <td>{user.wallet}</td>
                         <td>{moment(user.createdAt).format("YYYY-MM-DD")}</td>
+                        <td>
+                          {" "}
+                          {user.status == true ? (
+                            <span style={{ color: "green" }}>Active</span>
+                          ) : (
+                            <span style={{ color: "red" }}>Block</span>
+                          )}
+                        </td>
+                        <td className="py-2">
+                          <NavLink to={`/payment/${user._id}`}>
+                            <Button size="sm" variant="info" className="m-2">
+                              <i
+                                className="fa fa-credit-card"
+                                aria-hidden="true"
+                              >
+                                Payment
+                              </i>
+                            </Button>
+                          </NavLink>
+                          {user.status === false ? (
+                            <Button size="sm" variant="primary" className="m-2">
+                              <i className="fa fa-unlock" aria-hidden="true">
+                                UnBlock
+                              </i>
+                            </Button>
+                          ) : (
+                            <Button size="sm" variant="danger" className="ml-2">
+                              <i className="fa-lock" aria-hidden="true">
+                                Block
+                              </i>
+                            </Button>
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>

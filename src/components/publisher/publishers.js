@@ -402,7 +402,7 @@ export const PublisherComponent = () => {
 
       <Modal show={showEdit} onHide={handleCloseEdit}>
         <Modal.Header closeButton>
-          <Modal.Title>Edit Book Type</Modal.Title>
+          <Modal.Title>Edit Publisher</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <div className="card-body card-block">

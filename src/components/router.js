@@ -10,6 +10,7 @@ import { BorrowComponent } from "./user/order";
 import { BookDetails } from "./books/bookDetails";
 import { UpdateBook } from "./books/updateBook";
 import { CreateBookComponent } from "./books/create";
+import { PaymentComponent } from "./user/payment";
 
 export const AdminRouteComponent = () => {
   return (
@@ -18,6 +19,7 @@ export const AdminRouteComponent = () => {
         <Route path="/books/update/:bookId" component={UpdateBook} />
         <Route path="/books/add" component={CreateBookComponent} />
         <Route path="/books/:bookId" component={BookDetails} />
+        <Route path="/payment/:userId" component={PaymentComponent} />
         <Route path="/borrows" component={BorrowComponent} />
         <Route path="/users" component={UserComponent} />
         <Route path="/books" component={BooksComponent} />
