@@ -6,9 +6,10 @@ import Paginations from "react-js-pagination";
 import "react-s-alert/dist/s-alert-default.css";
 import "react-s-alert/dist/s-alert-css-effects/slide.css";
 import moment from "moment";
-import { getBorrows } from "../../api/index";
+import { getBorrows, expiredOrder } from "../../api/index";
 export const BorrowComponent = () => {
   const [orders, setOrder] = useState([]);
+  const [reload, setReload] = useState(true);
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 5,
@@ -44,7 +45,7 @@ export const BorrowComponent = () => {
   useEffect(() => {
     getData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pagination]);
+  }, [pagination, reload]);
   const getMore = (number) => {
     setPagination({ ...pagination, limit: number });
   };
@@ -53,6 +54,26 @@ export const BorrowComponent = () => {
   };
   const handleSearch = (value) => {
     setPagination({ ...pagination, searchKey: value });
+  };
+  const handleExpired = async (orderId) => {
+    try {
+      const response = await expiredOrder({ orderId: orderId });
+      setReload(!reload);
+      return Alert.success(`<div role="alert">${response.data.message}</div>`, {
+        html: true,
+        position: "top-right",
+        effect: "slide",
+      });
+    } catch (error) {
+      return Alert.error(
+        `<div role="alert">${error.response.data.message}</div>`,
+        {
+          html: true,
+          position: "top-right",
+          effect: "slide",
+        }
+      );
+    }
   };
   return (
     <div className="content">
@@ -122,15 +143,22 @@ export const BorrowComponent = () => {
                           {moment(order.endAt).format("YYYY-MM-DD HH:MM")}
                         </td>
                         <td>
-                          {order.status == true ? (
+                          {order.status === true ? (
                             <span style={{ color: "green" }}>Can red</span>
                           ) : (
                             <span style={{ color: "red" }}>Expired</span>
                           )}
                         </td>
                         <td>
-                          {order.status == true ? (
-                            <Button variant="danger">Expired</Button>
+                          {order.status === true ? (
+                            <Button
+                              variant="danger"
+                              onClick={() => {
+                                handleExpired(order._id);
+                              }}
+                            >
+                              Expired
+                            </Button>
                           ) : (
                             ""
                           )}

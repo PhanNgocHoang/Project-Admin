@@ -17,9 +17,7 @@ import Iframe from "react-iframe";
 import * as yup from "yup";
 const validationSchema = yup.object().shape({
   book_name: yup.string().required("Book name is required"),
-  authors: yup.lazy((val) =>
-    Array.isArray(val) ? yup.array().of(yup.string()) : yup.string()
-  ),
+  authors: yup.array().min(1, "Please choose a author"),
   book_type: yup.string().required("Book type is required"),
   publisher: yup.string().required("Book publisher is required"),
   images: yup.string().required("Book image is required"),
@@ -43,7 +41,7 @@ export const CreateBookComponent = () => {
   const authors = useSelector((state) => {
     return state.authors.data;
   });
-  const [bookImage, setBookImage] = useState("");
+  const [bookImage, setBookImage] = useState();
   const [doc, setDoc] = useState();
   const [uploadStatus, setUploadStatus] = useState(false);
   const getData = async () => {
@@ -329,9 +327,13 @@ export const CreateBookComponent = () => {
                     <Button
                       variant="success"
                       type="submit"
-                      disabled={uploadStatus}
+                      disabled={doc && bookImage ? uploadStatus : true}
                     >
-                      {uploadStatus ? "Creating....." : " Create"}
+                      {doc && bookImage
+                        ? uploadStatus
+                          ? "Creating....."
+                          : " Create"
+                        : "Create"}
                     </Button>
                   </Form>
                 </div>

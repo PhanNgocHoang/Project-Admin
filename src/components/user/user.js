@@ -6,10 +6,11 @@ import Paginations from "react-js-pagination";
 import "react-s-alert/dist/s-alert-default.css";
 import "react-s-alert/dist/s-alert-css-effects/slide.css";
 import moment from "moment";
-import { getUsers } from "../../api/index";
+import { getUsers, blockUser, unBlockUser } from "../../api/index";
 import { NavLink } from "react-router-dom";
 export const UserComponent = () => {
   const [users, setUser] = useState([]);
+  const [reload, setReload] = useState(true);
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 5,
@@ -24,8 +25,6 @@ export const UserComponent = () => {
     try {
       const paramsString = queryString.stringify(pagination);
       const result = await getUsers(paramsString);
-      console.log(result);
-
       setUser(result.data.data);
       setPaginationInfo({
         ...paginationInfo,
@@ -47,7 +46,7 @@ export const UserComponent = () => {
   useEffect(() => {
     getData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pagination]);
+  }, [pagination, reload]);
   const getMore = (number) => {
     setPagination({ ...pagination, limit: number });
   };
@@ -56,6 +55,46 @@ export const UserComponent = () => {
   };
   const handleSearch = (value) => {
     setPagination({ ...pagination, searchKey: value });
+  };
+  const handleBlocked = async (userId) => {
+    try {
+      const response = await blockUser({ userId: userId });
+      setReload(!reload)
+      return Alert.success(`<div role="alert">${response.data.message}</div>`, {
+        html: true,
+        position: "top-right",
+        effect: "slide",
+      });
+    } catch (error) {
+      return Alert.error(
+        `<div role="alert">${error.response.data.message}</div>`,
+        {
+          html: true,
+          position: "top-right",
+          effect: "slide",
+        }
+      );
+    }
+  };
+  const handlerUnBlock = async (userId) => {
+    try {
+      const response = await unBlockUser({ userId: userId });
+      setReload(!reload);
+      return Alert.success(`<div role="alert">${response.data.message}</div>`, {
+        html: true,
+        position: "top-right",
+        effect: "slide",
+      });
+    } catch (error) {
+      return Alert.error(
+        `<div role="alert">${error.response.data.message}</div>`,
+        {
+          html: true,
+          position: "top-right",
+          effect: "slide",
+        }
+      );
+    }
   };
   return (
     <div className="content">
@@ -118,7 +157,7 @@ export const UserComponent = () => {
                         <td>{moment(user.createdAt).format("YYYY-MM-DD")}</td>
                         <td>
                           {" "}
-                          {user.status == true ? (
+                          {user.status === true ? (
                             <span style={{ color: "green" }}>Active</span>
                           ) : (
                             <span style={{ color: "red" }}>Block</span>
@@ -136,13 +175,27 @@ export const UserComponent = () => {
                             </Button>
                           </NavLink>
                           {user.status === false ? (
-                            <Button size="sm" variant="primary" className="m-2">
+                            <Button
+                              size="sm"
+                              variant="primary"
+                              className="m-2"
+                              onClick={() => {
+                                handlerUnBlock(user._id);
+                              }}
+                            >
                               <i className="fa fa-unlock" aria-hidden="true">
                                 UnBlock
                               </i>
                             </Button>
                           ) : (
-                            <Button size="sm" variant="danger" className="ml-2">
+                            <Button
+                              size="sm"
+                              variant="danger"
+                              className="ml-2"
+                              onClick={() => {
+                                handleBlocked(user._id);
+                              }}
+                            >
                               <i className="fa-lock" aria-hidden="true">
                                 Block
                               </i>

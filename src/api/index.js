@@ -109,3 +109,12 @@ export const getDashboard = async function () {
 export const PaymentHistory = async function (userId, params) {
   return await instance.get(`/payment/history/${userId}?${params}`);
 };
+export const blockUser = async function (userId) {
+  return await instance.post("/users/block", userId);
+};
+export const unBlockUser = async function (userId) {
+  return await instance.post("/users/unBlock", userId);
+};
+export const expiredOrder = async function (orderId) {
+  return await instance.post("/order/expiredOrder", orderId);
+};
