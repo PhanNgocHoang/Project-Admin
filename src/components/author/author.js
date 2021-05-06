@@ -62,14 +62,17 @@ export const AuthorComponent = () => {
         });
       }
     } catch (error) {
-      return Alert.error(
-        `<div role="alert">${error.response.data.message}</div>`,
-        {
-          html: true,
-          position: "top-right",
-          effect: "slide",
-        }
-      );
+      if (error.response.data.message) {
+        return Alert.error(
+          `<div role="alert"><i class="fa fa-times-circle" aria-hidden="true"></i> ${error.response.data.message}
+                </div>`,
+          {
+            html: true,
+            position: "top-right",
+            effect: "slide",
+          }
+        );
+      }
     }
   };
   useEffect(() => {
@@ -97,14 +100,17 @@ export const AuthorComponent = () => {
         setShowEdit(true);
       }
     } catch (error) {
-      return Alert.error(
-        `<div role="alert"> <i class="fa fa-times-circle" aria-hidden="true"></i> ${error.response.data.message}</div>`,
-        {
-          html: true,
-          position: "top-right",
-          effect: "slide",
-        }
-      );
+      if (error.response.data.message) {
+        return Alert.error(
+          `<div role="alert"><i class="fa fa-times-circle" aria-hidden="true"></i> ${error.response.data.message}
+                </div>`,
+          {
+            html: true,
+            position: "top-right",
+            effect: "slide",
+          }
+        );
+      }
     }
   };
   const handleCloseEdit = () => {
@@ -127,14 +133,17 @@ export const AuthorComponent = () => {
         setShowDetails(true);
       }
     } catch (error) {
-      return Alert.error(
-        `<div role="alert"><i class="fa fa-times-circle" aria-hidden="true"></i> ${error.response.data.message}</div>`,
-        {
-          html: true,
-          position: "top-right",
-          effect: "slide",
-        }
-      );
+      if (error.response.data.message) {
+        return Alert.error(
+          `<div role="alert"><i class="fa fa-times-circle" aria-hidden="true"></i> ${error.response.data.message}
+                </div>`,
+          {
+            html: true,
+            position: "top-right",
+            effect: "slide",
+          }
+        );
+      }
     }
   };
   const handleDelete = async (id) => {
@@ -154,15 +163,17 @@ export const AuthorComponent = () => {
         );
       }
     } catch (error) {
-      return Alert.error(
-        `<div role="alert">
-                <i class="fa fa-times-circle" aria-hidden="true"></i> ${error.response.data.message}</div>`,
-        {
-          html: true,
-          position: "top-right",
-          effect: "slide",
-        }
-      );
+      if (error.response.data.message) {
+        return Alert.error(
+          `<div role="alert"><i class="fa fa-times-circle" aria-hidden="true"></i> ${error.response.data.message}
+                </div>`,
+          {
+            html: true,
+            position: "top-right",
+            effect: "slide",
+          }
+        );
+      }
     }
   };
   const confirmDelete = (id) => {
@@ -314,16 +325,17 @@ export const AuthorComponent = () => {
                   }
                 } catch (error) {
                   handleCloseCreate();
-                  return Alert.error(
-                    `<div role="alert">
-                        <i class="fa fa-times-circle" aria-hidden="true"></i> ${error.response.data.message}
-                                            </div>`,
-                    {
-                      html: true,
-                      position: "top-right",
-                      effect: "slide",
-                    }
-                  );
+                  if (error.response.data.message) {
+                    return Alert.error(
+                      `<div role="alert"><i class="fa fa-times-circle" aria-hidden="true"></i> ${error.response.data.message}
+                </div>`,
+                      {
+                        html: true,
+                        position: "top-right",
+                        effect: "slide",
+                      }
+                    );
+                  }
                 }
               }}
               validationSchema={validationSchema}
@@ -424,16 +436,17 @@ export const AuthorComponent = () => {
                   }
                 } catch (error) {
                   handleCloseEdit();
-                  return Alert.error(
-                    `<div role="alert">
-                       <i class="fa fa-times-circle" aria-hidden="true"></i> ${error.response.data.message}
-                                            </div>`,
-                    {
-                      html: true,
-                      position: "top-right",
-                      effect: "slide",
-                    }
-                  );
+                  if (error.response.data.message) {
+                    return Alert.error(
+                      `<div role="alert"><i class="fa fa-times-circle" aria-hidden="true"></i> ${error.response.data.message}
+                </div>`,
+                      {
+                        html: true,
+                        position: "top-right",
+                        effect: "slide",
+                      }
+                    );
+                  }
                 }
               }}
               validationSchema={validationSchema}

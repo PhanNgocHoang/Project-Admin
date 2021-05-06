@@ -86,14 +86,17 @@ export const UserComponent = () => {
         effect: "slide",
       });
     } catch (error) {
-      return Alert.error(
-        `<div role="alert">${error.response.data.message}</div>`,
-        {
-          html: true,
-          position: "top-right",
-          effect: "slide",
-        }
-      );
+     if (error.response.data.message) {
+       return Alert.error(
+         `<div role="alert"><i class="fa fa-times-circle" aria-hidden="true"></i> ${error.response.data.message}
+                </div>`,
+         {
+           html: true,
+           position: "top-right",
+           effect: "slide",
+         }
+       );
+     }
     }
   };
   return (

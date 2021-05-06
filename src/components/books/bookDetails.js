@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Row, Container, Col, Image } from "react-bootstrap";
 import { getBookDetail } from "../../api/index";
+import Alert from "react-s-alert";
+import "react-s-alert/dist/s-alert-default.css";
+import "react-s-alert/dist/s-alert-css-effects/slide.css";
 import Iframe from "react-iframe";
 export const BookDetails = (props) => {
   const bookId = props.match.params.bookId;
@@ -8,7 +11,18 @@ export const BookDetails = (props) => {
   useEffect(() => {
     getBookDetail(bookId).then((response) => {
       setBookDetails(response.data.data);
-    });
+    }).catch((error) => {
+      if (error.response.data.message) {
+        return Alert.error(
+          `<div role="alert">${error.response.data.message}</div>`,
+          {
+            html: true,
+            position: "top-right",
+            effect: "slide",
+          }
+        );
+      }
+    })
   }, [bookId]);
   return (
     <div className="content">

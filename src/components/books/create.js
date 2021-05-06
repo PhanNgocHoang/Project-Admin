@@ -73,14 +73,16 @@ export const CreateBookComponent = () => {
       window.location.href = "/books/add";
     } catch (error) {
       setUploadStatus(false);
-      return Alert.error(
-        `<div role="alert">${error.response.data.message}</div>`,
-        {
-          html: true,
-          position: "top-right",
-          effect: "slide",
-        }
-      );
+      if (error.response.data.message){
+        return Alert.error(
+          `<div role="alert">${error.response.data.message}</div>`,
+          {
+            html: true,
+            position: "top-right",
+            effect: "slide",
+          }
+        );
+      }
     }
   };
   const uploadDoc = async (file) => {
@@ -93,8 +95,13 @@ export const CreateBookComponent = () => {
         setDoc(result.data);
         return setUploadStatus(false);
       } catch (error) {
+        setUploadStatus(false);
         return Alert.error(
-          `<div role="alert">${error.response.data.message}</div>`,
+          `<div role="alert"> <i class="fa fa-times-circle" aria-hidden="true"></i> ${
+            error.response.data.message
+              ? error.response.data.message
+              : "Please choose file type jpg, png and size less 5mb"
+          }</div>`,
           {
             html: true,
             position: "top-right",
@@ -266,8 +273,13 @@ export const CreateBookComponent = () => {
                               return setUploadStatus(false);
                             }
                           } catch (error) {
+                            setUploadStatus(false);
                             return Alert.error(
-                              `<div role="alert"> <i class="fa fa-times-circle" aria-hidden="true"></i> ${error.response.data.message}</div>`,
+                              `<div role="alert"> <i class="fa fa-times-circle" aria-hidden="true"></i> ${
+                                error.response.data.message
+                                  ? error.response.data.message
+                                  : "Please choose file type jpg, png and size less 5mb"
+                              }</div>`,
                               {
                                 html: true,
                                 position: "top-right",

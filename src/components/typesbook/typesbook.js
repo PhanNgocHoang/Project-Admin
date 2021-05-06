@@ -63,14 +63,17 @@ export const TypeBookComponent = () => {
         });
       }
     } catch (error) {
-      return Alert.error(
-        `<div role="alert">${error.response.data.message}</div>`,
-        {
-          html: true,
-          position: "top-right",
-          effect: "slide",
-        }
-      );
+     if (error.response.data.message) {
+       return Alert.error(
+         `<div role="alert"><i class="fa fa-times-circle" aria-hidden="true"></i> ${error.response.data.message}
+                </div>`,
+         {
+           html: true,
+           position: "top-right",
+           effect: "slide",
+         }
+       );
+     }
     }
   };
   useEffect(() => {
@@ -93,15 +96,17 @@ export const TypeBookComponent = () => {
         );
       }
     } catch (error) {
-      return Alert.error(
-        `<div role="alert">
-            <i class="fa fa-times-circle" aria-hidden="true"></i> ${error.response.data.message}</div>`,
-        {
-          html: true,
-          position: "top-right",
-          effect: "slide",
-        }
-      );
+      if (error.response.data.message) {
+        return Alert.error(
+          `<div role="alert"><i class="fa fa-times-circle" aria-hidden="true"></i> ${error.response.data.message}
+                </div>`,
+          {
+            html: true,
+            position: "top-right",
+            effect: "slide",
+          }
+        );
+      }
     }
   };
   const confirmDelete = (id) => {
@@ -118,7 +123,6 @@ export const TypeBookComponent = () => {
     setPagination({ ...pagination, page: pageNumber });
   };
   const handleSearch = (value) => {
-    console.log(value);
     setPagination({ ...pagination, searchKey: value });
   };
   const handleShowEdit = async (id) => {
@@ -132,15 +136,17 @@ export const TypeBookComponent = () => {
         setShowEdit(true);
       }
     } catch (error) {
-      return Alert.error(
-        `<div role="alert"><i class="fa fa-times-circle" aria-hidden="true"></i> ${error.response.data.message}
+      if (error.response.data.message){
+        return Alert.error(
+          `<div role="alert"><i class="fa fa-times-circle" aria-hidden="true"></i> ${error.response.data.message}
                 </div>`,
-        {
-          html: true,
-          position: "top-right",
-          effect: "slide",
-        }
-      );
+          {
+            html: true,
+            position: "top-right",
+            effect: "slide",
+          }
+        );
+      }
     }
   };
   const handleCloseEdit = () => {
@@ -163,15 +169,17 @@ export const TypeBookComponent = () => {
         setShowDetails(true);
       }
     } catch (error) {
-      return Alert.error(
-        `<div role="alert">
-            <i class="fa fa-times-circle" aria-hidden="true"></i> ${error.response.data.message}</div>`,
-        {
-          html: true,
-          position: "top-right",
-          effect: "slide",
-        }
-      );
+     if (error.response.data.message) {
+       return Alert.error(
+         `<div role="alert"><i class="fa fa-times-circle" aria-hidden="true"></i> ${error.response.data.message}
+                </div>`,
+         {
+           html: true,
+           position: "top-right",
+           effect: "slide",
+         }
+       );
+     }
     }
   };
   const handleCloseDetails = () => {
@@ -326,16 +334,17 @@ export const TypeBookComponent = () => {
                   }
                 } catch (error) {
                   handleCloseCreate();
-                  return Alert.error(
-                    `<div role="alert">
-                    <i class="fa fa-times-circle" aria-hidden="true"></i> ${error.response.data.message}
-                                            </div>`,
-                    {
-                      html: true,
-                      position: "top-right",
-                      effect: "slide",
-                    }
-                  );
+                  if (error.response.data.message) {
+                    return Alert.error(
+                      `<div role="alert"><i class="fa fa-times-circle" aria-hidden="true"></i> ${error.response.data.message}
+                </div>`,
+                      {
+                        html: true,
+                        position: "top-right",
+                        effect: "slide",
+                      }
+                    );
+                  }
                 }
               }}
               validationSchema={validationSchema}
@@ -411,16 +420,17 @@ export const TypeBookComponent = () => {
                   }
                 } catch (error) {
                   handleCloseEdit();
-                  return Alert.error(
-                    `<div role="alert">
-                    <i class="fa fa-times-circle" aria-hidden="true"></i> ${error.response.data.message}
-                                            </div>`,
-                    {
-                      html: true,
-                      position: "top-right",
-                      effect: "slide",
-                    }
-                  );
+                  if (error.response.data.message) {
+                    return Alert.error(
+                      `<div role="alert"><i class="fa fa-times-circle" aria-hidden="true"></i> ${error.response.data.message}
+                </div>`,
+                      {
+                        html: true,
+                        position: "top-right",
+                        effect: "slide",
+                      }
+                    );
+                  }
                 }
               }}
               validationSchema={validationSchema}

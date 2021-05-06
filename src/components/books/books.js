@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import Alert from "react-s-alert";
 import queryString from "query-string";
 import { NavLink } from "react-router-dom";
 import { Table, Button } from "react-bootstrap";
 import Paginations from "react-js-pagination";
+import Alert from "react-s-alert";
 import "react-s-alert/dist/s-alert-default.css";
 import "react-s-alert/dist/s-alert-css-effects/slide.css";
 import { getBooks, deleteBook } from "../../api/index";
@@ -31,14 +31,18 @@ export const BooksComponent = () => {
         totalItems: result.data.data.totalItems,
       });
     } catch (error) {
-      return Alert.error(
-        `<div role="alert">${error.response.data.message}</div>`,
-        {
-          html: true,
-          position: "top-right",
-          effect: "slide",
-        }
-      );
+      if (error.response.data.message) {
+        return Alert.error(
+          `<div role="alert">
+                    <i class="fa fa-times-circle" aria-hidden="true"></i> ${error.response.data.message}
+                                            </div>`,
+          {
+            html: true,
+            position: "top-right",
+            effect: "slide",
+          }
+        );
+      }
     }
   };
   useEffect(() => {
@@ -71,15 +75,18 @@ export const BooksComponent = () => {
         );
       }
     } catch (error) {
-      return Alert.error(
-        `<div role="alert">
-                ${error.response.data.message}</div>`,
-        {
-          html: true,
-          position: "top-right",
-          effect: "slide",
-        }
-      );
+      if (error.response.data.message) {
+        return Alert.error(
+          `<div role="alert">
+                    <i class="fa fa-times-circle" aria-hidden="true"></i> ${error.response.data.message}
+                                            </div>`,
+          {
+            html: true,
+            position: "top-right",
+            effect: "slide",
+          }
+        );
+      }
     }
   };
   const confirmDelete = (id) => {
